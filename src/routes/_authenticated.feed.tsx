@@ -57,6 +57,10 @@ function FeedPage() {
   const { data: sale } = useQuery(saleQuery);
   const [cat, setCat] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"all" | "auction" | "free">("all");
+  const [adminUnlocked, setAdminUnlocked] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.sessionStorage.getItem(ADMIN_UNLOCK_KEY) === "1";
+  });
   const [nowMs, setNowMs] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 30_000);
@@ -117,9 +121,16 @@ function FeedPage() {
             <h1 className="font-display text-2xl italic leading-none text-foreground">
               The Sale
             </h1>
+            {admin?.isAdmin && !adminUnlocked && (
+              <div className="mt-1 text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
+                Host tools →
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
-            {admin?.isAdmin && <AdminMenu />}
+            {admin?.isAdmin && (
+              <AdminMenu unlocked={adminUnlocked} setUnlocked={setAdminUnlocked} />
+            )}
 
 
             <Link
@@ -219,13 +230,28 @@ function FeedPage() {
   );
 }
 
-function AdminMenu() {
-  const [unlocked, setUnlocked] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.sessionStorage.getItem(ADMIN_UNLOCK_KEY) === "1";
-  });
+const ADMIN_PULSE_KEY = "adminPulseShown";
+
+function AdminMenu({
+  unlocked,
+  setUnlocked,
+}: {
+  unlocked: boolean;
+  setUnlocked: (v: boolean) => void;
+}) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pw, setPw] = useState("");
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    if (unlocked) return;
+    if (typeof window === "undefined") return;
+    if (window.sessionStorage.getItem(ADMIN_PULSE_KEY) === "1") return;
+    window.sessionStorage.setItem(ADMIN_PULSE_KEY, "1");
+    setPulse(true);
+    const t = setTimeout(() => setPulse(false), 3000);
+    return () => clearTimeout(t);
+  }, [unlocked]);
 
   function submitPw(e: React.FormEvent) {
     e.preventDefault();
@@ -252,10 +278,17 @@ function AdminMenu() {
       <>
         <button
           onClick={() => setDialogOpen(true)}
-          className="inline-flex h-9 items-center gap-1 rounded-full border border-border bg-background px-3.5 text-xs font-medium text-foreground hover:bg-muted"
+          className={cn(
+            "relative inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-4 text-xs font-semibold text-background shadow-sm hover:opacity-90",
+            pulse && "ring-2 ring-foreground/40 ring-offset-2 ring-offset-background animate-pulse",
+          )}
         >
-          <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />
+          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
           Admin
+          <span className="ml-0.5 inline-flex items-center gap-1 rounded-full bg-background/15 px-1.5 py-0.5 text-[9px] uppercase tracking-wider">
+            <Lock className="h-2.5 w-2.5" strokeWidth={3} />
+            Unlock
+          </span>
         </button>
         <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) setPw(""); }}>
           <DialogContent className="sm:max-w-sm">
