@@ -228,7 +228,7 @@ function CatPill({
   );
 }
 
-function ItemCard({ item, idx }: { item: FeedItem; idx: number }) {
+function ItemCard({ item, idx, expired }: { item: FeedItem; idx: number; expired: boolean }) {
   const token = categoryToken(item.category);
   const chipTone: Record<string, string> = {
     matcha: "bg-matcha/80 text-matcha-foreground",
