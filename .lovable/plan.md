@@ -1,46 +1,28 @@
-## 1. Password-gate the Admin menu on the feed
+## Goal
 
-In `src/routes/_authenticated.feed.tsx`, the Admin dropdown currently renders whenever `admin?.isAdmin` is true. Add a second gate: a client-side session flag (`sessionStorage.getItem("adminUnlocked") === "1"`) that must also be true.
+Right now the "Admin" pill on the Feed header (top-right, next to the shopping bag and sign-out icons) is a small, muted button with a lock icon — easy to miss. Only users whose account has the admin role in the database ever see it. This plan makes it more obvious for those admins, without exposing it to regular guests.
 
-- If `isAdmin` is true but not unlocked → show a small "Admin 🔒" pill that opens a shadcn `Dialog` with a password `Input` (masked, `inputMode="numeric"`).
-- Correct password `080808` → set `sessionStorage.adminUnlocked = "1"`, close dialog, reveal the real dropdown (Add item / Results / Lock).
-- Wrong password → toast error, clear field.
-- Add a "Lock admin" item at the bottom of the dropdown that clears the flag.
-- Non-admins (server `isAdmin` returns false) see nothing, unchanged.
+## What changes
 
-Note this is a UX gate on top of the existing role check — the server still enforces admin via `has_role` on every mutation, so the password is not a security boundary, just a "don't hand my phone to a friend" guard. The literal `080808` will live in the client bundle; that is acceptable for a friends-and-family sale but I'll flag it in the reply.
+On `/feed`, for users who are admins (i.e. `isAdmin` returns true):
 
-**File:** `src/routes/_authenticated.feed.tsx` only.
+1. **Bigger, higher-contrast pill.** Swap the current bordered/muted style for the app's primary "foreground on background" pill (same treatment as the unlocked Admin dropdown) so it stands out against the muted header icons.
+2. **Clearer label + icon.** Use a shield icon and the label "Admin · Unlock" when locked, and keep "Admin" with the shield when unlocked. The lock icon becomes a small badge only.
+3. **Move it to the far right, before the icons**, and give it a subtle attention treatment on first mount for that session (a one-time soft pulse ring) so admins notice it after signing in. The pulse fades after ~3s and never runs again in the same tab.
+4. **A tiny helper caption** ("Host tools") under the header title when the user is an admin and hasn't unlocked yet, pointing to the button. Hidden once unlocked or once the session's already been unlocked before.
 
-## 2. Test the admin results page
+Non-admins see no change — they never render this button at all.
 
-Once the plan is approved and I'm in build mode, I'll drive the live preview with Playwright as admin (Ashling's session is already injected):
+## Out of scope
 
-1. Navigate to `/admin/results`.
-2. Screenshot the page.
-3. Verify: winning bidders per auction item render, free-claim list renders, no console errors, no failed network requests to `listResults` / whichever server fn backs it.
-4. Read `src/routes/_authenticated.admin.results.tsx` + the server fn it calls first to know what "correct" looks like before asserting.
+- No change to the password (`080808`) or the unlock storage mechanism.
+- No change to who counts as admin (still driven by `user_roles` + the auto-admin trigger for the first user).
+- No change to the admin dropdown contents once unlocked.
 
-I'll report what I see with the screenshot.
+## Technical notes
 
-## 3. Test claim / unclaim ownership rule
-
-The rule is enforced in the DB function `unclaim_free_item` (`WHERE claimed_by = auth.uid()` + `RAISE EXCEPTION` otherwise) — I'll verify end-to-end:
-
-1. As current user (Ashling), find a free item on `/feed`, open detail, click Claim. Screenshot: status flips to claimed by Ashling.
-2. Click Unclaim on the same item. Screenshot: item returns to available. ✅ same user can unclaim.
-3. Re-claim it as Ashling, then simulate a second user by signing out and signing in with a different name+phone via `/auth`, navigate to the same item, and confirm the Unclaim button is not offered (or if it is, that clicking it surfaces the "You can only unclaim items you claimed yourself" error and item stays claimed). ✅ other user cannot unclaim.
-4. Sign back in as Ashling and unclaim to leave state clean.
-
-If step 3 shows the Unclaim button is even rendered for a non-claimer, that's a UI bug I'll call out (server still blocks it, but the button shouldn't be there) — fix would be a one-line guard in `_authenticated.items.$itemId.tsx`. I won't change it in this turn unless you want me to.
-
-## Deliverables
-
-- One code change: password gate on the Admin dropdown.
-- Two test reports with screenshots: admin results page, and claim/unclaim ownership.
-
-## Technical details
-
-- Password check is a plain string compare in the component; stored unlock flag in `sessionStorage` so it clears when the tab closes.
-- No DB, no server function, no migration.
-- Playwright scripts land under `/tmp/browser/` per the browser-use rules; I'll restore Ashling's Supabase session from the injected env before navigating.
+- File touched: `src/routes/_authenticated.feed.tsx` only.
+- `AdminMenu` gets a new "locked" visual variant (primary pill + shield + "Admin · Unlock" text) and reuses the existing dialog + `submitPw` logic untouched.
+- The one-time pulse uses a `useEffect` + `sessionStorage` flag (e.g. `adminPulseShown`) so it only animates once per tab, and only when locked.
+- The "Host tools" caption renders inside the existing header title block, gated on `admin?.isAdmin && !unlocked`. To read `unlocked` from the parent we'll either hoist the unlocked state into `FeedPage` or expose it via a tiny context — hoisting is simpler and keeps the component tree flat.
+- No new deps, no DB or server-function changes, no route changes.
