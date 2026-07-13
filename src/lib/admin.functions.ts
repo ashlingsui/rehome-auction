@@ -165,3 +165,131 @@ export const getUploadPath = createServerFn({ method: "POST" })
     const path = `${userId}/${crypto.randomUUID()}.${data.ext.replace(/^\./, "")}`;
     return { path };
   });
+
+export type AuctionResult = {
+  item_id: string;
+  title: string;
+  photo_signed_url: string;
+  bid_count: number;
+  winning_amount: number | null;
+  winner_name: string | null;
+  winner_phone: string | null;
+};
+
+export type FreeClaim = {
+  item_id: string;
+  title: string;
+  photo_signed_url: string;
+  claimer_name: string;
+  claimer_phone: string;
+};
+
+export const getAuctionResults = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data: isAdminRow } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (!isAdminRow) throw new Error("Admins only.");
+
+    const [{ data: items, error: itemsErr }, { data: settings }] =
+      await Promise.all([
+        supabase.from("items").select("*").order("created_at", { ascending: false }),
+        supabase.from("sale_settings").select("auction_ends_at").eq("id", true).maybeSingle(),
+      ]);
+    if (itemsErr) throw new Error(itemsErr.message);
+    const allItems = items ?? [];
+
+    const sale_closed = settings
+      ? new Date(settings.auction_ends_at).getTime() <= Date.now()
+      : false;
+
+    // Sign all photos in a single call
+    const paths = allItems.map((i) => i.photo_url).filter(Boolean);
+    const signedMap: Record<string, string> = {};
+    if (paths.length > 0) {
+      const { data: signed } = await supabase.storage
+        .from("item-photos")
+        .createSignedUrls(paths, 60 * 60);
+      for (const row of signed ?? []) {
+        if (row.path && row.signedUrl) signedMap[row.path] = row.signedUrl;
+      }
+    }
+
+    // All bids for auction items
+    const auctionItems = allItems.filter((i) => i.type === "auction");
+    const auctionIds = auctionItems.map((i) => i.id);
+
+    const bidsByItem = new Map<
+      string,
+      { amount: number; user_id: string; created_at: string }
+    >();
+    const bidCounts = new Map<string, number>();
+
+    if (auctionIds.length > 0) {
+      const { data: bids } = await supabase
+        .from("bids")
+        .select("item_id, amount, user_id, created_at")
+        .in("item_id", auctionIds);
+      for (const b of bids ?? []) {
+        const amt = Number(b.amount);
+        bidCounts.set(b.item_id, (bidCounts.get(b.item_id) ?? 0) + 1);
+        const cur = bidsByItem.get(b.item_id);
+        if (!cur || amt > cur.amount) {
+          bidsByItem.set(b.item_id, {
+            amount: amt,
+            user_id: b.user_id,
+            created_at: b.created_at,
+          });
+        }
+      }
+    }
+
+    // Profiles for winners + claimers
+    const claimerIds = allItems
+      .filter((i) => i.type === "free" && i.claimed_by)
+      .map((i) => i.claimed_by as string);
+    const winnerIds = Array.from(bidsByItem.values()).map((b) => b.user_id);
+    const profileIds = Array.from(new Set([...claimerIds, ...winnerIds]));
+
+    const profileMap = new Map<string, { name: string; phone: string }>();
+    if (profileIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name, phone")
+        .in("id", profileIds);
+      for (const p of profiles ?? [])
+        profileMap.set(p.id, { name: p.name, phone: p.phone });
+    }
+
+    const auctions: AuctionResult[] = auctionItems.map((i) => {
+      const top = bidsByItem.get(i.id);
+      const winner = top ? profileMap.get(top.user_id) : null;
+      return {
+        item_id: i.id,
+        title: i.title,
+        photo_signed_url: signedMap[i.photo_url] ?? "",
+        bid_count: bidCounts.get(i.id) ?? 0,
+        winning_amount: top ? top.amount : null,
+        winner_name: winner?.name ?? null,
+        winner_phone: winner?.phone ?? null,
+      };
+    });
+
+    const free_claims: FreeClaim[] = allItems
+      .filter((i) => i.type === "free" && i.status === "claimed" && i.claimed_by)
+      .map((i) => {
+        const p = profileMap.get(i.claimed_by as string);
+        return {
+          item_id: i.id,
+          title: i.title,
+          photo_signed_url: signedMap[i.photo_url] ?? "",
+          claimer_name: p?.name ?? "—",
+          claimer_phone: p?.phone ?? "",
+        };
+      });
+
+    return { auctions, free_claims, sale_closed };
+  });
