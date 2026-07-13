@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, ImagePlus, Sparkles, Loader2, Clock } from "lucide-react";
+import { ArrowLeft, ImagePlus, Sparkles, Loader2, Clock, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const adminQuery = queryOptions({
@@ -176,13 +176,23 @@ function AdminPage() {
   return (
     <div className="min-h-screen bg-background pb-16">
       <div className="mx-auto max-w-xl px-5 pt-6">
-        <Link
-          to="/feed"
-          className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground hover:bg-muted"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Link>
+        <div className="flex items-center justify-between gap-2">
+          <Link
+            to="/feed"
+            className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Link>
+          <Link
+            to="/admin/results"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-foreground px-4 text-sm font-medium text-background hover:opacity-90"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Results
+          </Link>
+        </div>
+
 
         <div className="mt-8">
           <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
