@@ -94,6 +94,9 @@ function AdminPage() {
       </div>
     );
   }
+  // Child routes (e.g. /admin/results, /admin/items/:id/edit) render themselves.
+  if (isChildRoute) return <Outlet />;
+
   if (!adminCheck?.isAdmin) {
     return (
       <div className="mx-auto max-w-md p-10 text-center">
