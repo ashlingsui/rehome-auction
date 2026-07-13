@@ -51,6 +51,40 @@ function AdminPage() {
   const [genLoading, setGenLoading] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
+  // Paste-image listener — kept above early returns so hook order stays stable.
+  useEffect(() => {
+    if (!adminCheck?.isAdmin) return;
+    function handlePaste(e: ClipboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
+        const hasImage = Array.from(e.clipboardData?.items ?? []).some((i) =>
+          i.type.startsWith("image/"),
+        );
+        if (!hasImage) return;
+      }
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          const blob = item.getAsFile();
+          if (blob) {
+            e.preventDefault();
+            const ext = (blob.type.split("/")[1] || "png").toLowerCase();
+            const named = new File([blob], `pasted-${Date.now()}.${ext}`, {
+              type: blob.type,
+            });
+            onFileRef.current?.(named);
+            toast.success("Photo pasted.");
+            return;
+          }
+        }
+      }
+    }
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [adminCheck?.isAdmin]);
+
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
