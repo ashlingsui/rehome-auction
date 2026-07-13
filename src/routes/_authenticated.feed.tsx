@@ -121,9 +121,16 @@ function FeedPage() {
             <h1 className="font-display text-2xl italic leading-none text-foreground">
               The Sale
             </h1>
+            {admin?.isAdmin && !adminUnlocked && (
+              <div className="mt-1 text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
+                Host tools →
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
-            {admin?.isAdmin && <AdminMenu />}
+            {admin?.isAdmin && (
+              <AdminMenu unlocked={adminUnlocked} setUnlocked={setAdminUnlocked} />
+            )}
 
 
             <Link
