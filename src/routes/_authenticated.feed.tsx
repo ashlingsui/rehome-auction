@@ -156,11 +156,29 @@ function FeedPage() {
 
       {/* Grid */}
       <main className="mx-auto max-w-4xl px-5 pt-6">
-        <div className="mb-5 rounded-3xl border border-border bg-lilac/40 px-5 py-4 text-sm leading-relaxed text-foreground">
-          <div className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        <div className="mb-5 rounded-3xl border border-border bg-lilac/40 px-5 py-5 text-sm text-foreground">
+          <div className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             A little note 💌
           </div>
-          Ashling is clearing out her apartment and has too much stuff, so she needs your help finding new homes for things. Items marked "Free" are first come, first served — grab them before someone else does. Items marked "Auction" are blind bids: you only get to bid once, no one sees what others bid, and the highest offer wins. This is a friends & family thing, so please keep bids gentle. Every bid goes straight into Ashling's wine fund — do not encourage her drinking too much — so bid what feels fair, not what feels competitive. 🍷</div>
+          <ul className="space-y-2.5 leading-relaxed">
+            <li className="flex gap-2.5">
+              <span className="shrink-0">🏠</span>
+              <span>Ashling is clearing out her apartment and has too much stuff — she needs your help finding new homes for things.</span>
+            </li>
+            <li className="flex gap-2.5">
+              <span className="shrink-0">🎁</span>
+              <span>Items marked <strong>Free</strong> are first come, first served. Grab them before someone else does.</span>
+            </li>
+            <li className="flex gap-2.5">
+              <span className="shrink-0">🤝</span>
+              <span>Items marked <strong>Auction</strong> are blind bids: you only get to bid once, no one sees what others bid, and the highest offer wins.</span>
+            </li>
+            <li className="flex gap-2.5">
+              <span className="shrink-0">🍷</span>
+              <span>This is a friends & family thing, so please keep bids gentle. Every bid goes into Ashling's wine fund — do not encourage her drinking too much — so bid what feels fair, not what feels competitive.</span>
+            </li>
+          </ul>
+        </div>
 
         {filtered.length === 0 ? (
           <EmptyState admin={!!admin?.isAdmin} />
