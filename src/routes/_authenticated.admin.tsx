@@ -504,3 +504,47 @@ function SaleTimerCard() {
 }
 
 
+
+function LegacyPasswordCard() {
+  const rotateFn = useServerFn(rotateLegacyPasswords);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ rotated: number; total: number } | null>(null);
+
+  async function onRotate() {
+    if (!window.confirm("This will invalidate the old auto-generated passwords for every friend who hasn't picked their own passcode yet. They'll be asked to pick one on their next visit. Continue?")) return;
+    setBusy(true);
+    try {
+      const r = await rotateFn({});
+      setResult(r);
+      toast.success(`Invalidated ${r.rotated} legacy password${r.rotated === 1 ? "" : "s"}.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't rotate.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-6 rounded-3xl border border-border bg-card p-5">
+      <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        Security · legacy passwords
+      </div>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Kill any old phone-derived passwords for friends who haven't chosen their own passcode yet. Run this once after the switch. Safe to re-run.
+      </p>
+      <Button
+        type="button"
+        onClick={onRotate}
+        disabled={busy}
+        className="mt-3 h-11 rounded-2xl bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+      >
+        {busy ? "Rotating…" : "Invalidate legacy passwords"}
+      </Button>
+      {result && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          {result.rotated} of {result.total} un-claimed accounts rotated.
+        </p>
+      )}
+    </div>
+  );
+}
