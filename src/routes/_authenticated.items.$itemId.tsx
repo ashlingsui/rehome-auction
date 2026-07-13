@@ -75,7 +75,11 @@ function ItemDetail() {
       return;
     }
     if (item.starting_price && amt < item.starting_price) {
-      toast.error(`Minimum bid is $${item.starting_price}.`);
+      toast.error(`Minimum bid is ¥${item.starting_price}.`);
+      return;
+    }
+    if (amt > 200) {
+      toast.error("Max bid is ¥200 — it's a friends & family sale 💛");
       return;
     }
     setSubmitting(true);
@@ -170,7 +174,7 @@ function ItemDetail() {
         {item.type === "auction" && item.starting_price && !claimed && (
           <div className="mt-4 text-sm text-muted-foreground">
             Bidding opens at{" "}
-            <span className="font-medium text-foreground">${item.starting_price}</span>.
+            <span className="font-medium text-foreground">¥{item.starting_price}</span> · max ¥200.
           </div>
         )}
 
@@ -218,16 +222,19 @@ function ItemDetail() {
               ) : (
                 <form onSubmit={onBid} className="flex gap-2">
                   <div className="relative flex-1">
-                    <DollarSign className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base font-medium text-muted-foreground">
+                      ¥
+                    </span>
                     <Input
                       value={bidAmount}
                       onChange={(e) => setBidAmount(e.target.value)}
                       type="number"
                       inputMode="decimal"
                       min={item.starting_price ?? 1}
+                      max={200}
                       step="1"
-                      placeholder="Your blind bid"
-                      className="h-14 rounded-2xl border-border bg-background pl-11 text-base"
+                      placeholder="Your blind bid (max ¥200)"
+                      className="h-14 rounded-2xl border-border bg-background pl-9 text-base"
                     />
                   </div>
                   <Button
