@@ -75,7 +75,11 @@ function ItemDetail() {
       return;
     }
     if (item.starting_price && amt < item.starting_price) {
-      toast.error(`Minimum bid is $${item.starting_price}.`);
+      toast.error(`Minimum bid is ¥${item.starting_price}.`);
+      return;
+    }
+    if (amt > 200) {
+      toast.error("Max bid is ¥200 — it's a friends & family sale 💛");
       return;
     }
     setSubmitting(true);
