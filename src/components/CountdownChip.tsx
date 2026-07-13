@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getSaleSettings } from "@/lib/sale.functions";
 import { cn } from "@/lib/utils";
@@ -28,7 +27,6 @@ export function CountdownChip() {
   const qc = useQueryClient();
   const { data } = useQuery(saleQuery);
   const [now, setNow] = useState(() => Date.now());
-  const location = useLocation();
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -55,30 +53,23 @@ export function CountdownChip() {
   const remaining = endsAt - now;
   const expired = remaining <= 0;
 
-  // Item detail has a fixed bottom action bar — anchor top-right there.
-  const isItemDetail = location.pathname.startsWith("/items/");
-  const positionClass = isItemDetail
-    ? "top-4 right-4"
-    : "bottom-5 right-5";
-
   return (
     <div
-      className={cn(
-        "fixed z-40 select-none rounded-2xl border border-border/70 bg-background/85 px-4 py-2.5 shadow-sm backdrop-blur-lg",
-        positionClass,
-      )}
+      className="w-full border-b border-border/70 bg-background/90 backdrop-blur"
       aria-live="polite"
     >
-      <div className="text-[9px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-        {expired ? "Sale" : "Closes in"}
-      </div>
-      <div
-        className={cn(
-          "font-display italic leading-none",
-          expired ? "text-lg text-muted-foreground" : "text-xl text-foreground",
-        )}
-      >
-        {expired ? "Closed" : formatRemaining(remaining)}
+      <div className="mx-auto flex max-w-4xl items-center justify-center gap-2 px-5 py-2 text-center">
+        <span className="text-[9px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+          {expired ? "Sale" : "Closes in"}
+        </span>
+        <span
+          className={cn(
+            "font-display italic leading-none",
+            expired ? "text-base text-muted-foreground" : "text-base text-foreground",
+          )}
+        >
+          {expired ? "Closed" : formatRemaining(remaining)}
+        </span>
       </div>
     </div>
   );

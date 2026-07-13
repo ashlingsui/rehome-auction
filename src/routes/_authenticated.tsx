@@ -11,9 +11,10 @@ export const Route = createFileRoute("/_authenticated")({
   },
   component: () => (
     <>
-      <Outlet />
       <CountdownChip />
+      <Outlet />
     </>
   ),
+
 });
 
