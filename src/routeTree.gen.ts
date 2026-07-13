@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedMyRouteImport } from './routes/_authenticated.my'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated.feed'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedItemsItemIdRouteImport } from './routes/_authenticated.items.$itemId'
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedMyRoute = AuthenticatedMyRouteImport.update({
+  id: '/my',
+  path: '/my',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
   id: '/feed',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/feed': typeof AuthenticatedFeedRoute
+  '/my': typeof AuthenticatedMyRoute
   '/admin/results': typeof AuthenticatedAdminResultsRoute
   '/items/$itemId': typeof AuthenticatedItemsItemIdRoute
 }
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/feed': typeof AuthenticatedFeedRoute
+  '/my': typeof AuthenticatedMyRoute
   '/admin/results': typeof AuthenticatedAdminResultsRoute
   '/items/$itemId': typeof AuthenticatedItemsItemIdRoute
 }
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
+  '/_authenticated/my': typeof AuthenticatedMyRoute
   '/_authenticated/admin/results': typeof AuthenticatedAdminResultsRoute
   '/_authenticated/items/$itemId': typeof AuthenticatedItemsItemIdRoute
 }
@@ -87,10 +96,18 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/feed'
+    | '/my'
     | '/admin/results'
     | '/items/$itemId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/admin' | '/feed' | '/admin/results' | '/items/$itemId'
+  to:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/feed'
+    | '/my'
+    | '/admin/results'
+    | '/items/$itemId'
   id:
     | '__root__'
     | '/'
@@ -98,6 +115,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/feed'
+    | '/_authenticated/my'
     | '/_authenticated/admin/results'
     | '/_authenticated/items/$itemId'
   fileRoutesById: FileRoutesById
@@ -130,6 +148,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/my': {
+      id: '/_authenticated/my'
+      path: '/my'
+      fullPath: '/my'
+      preLoaderRoute: typeof AuthenticatedMyRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/feed': {
       id: '/_authenticated/feed'
@@ -176,12 +201,14 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
+  AuthenticatedMyRoute: typeof AuthenticatedMyRoute
   AuthenticatedItemsItemIdRoute: typeof AuthenticatedItemsItemIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
+  AuthenticatedMyRoute: AuthenticatedMyRoute,
   AuthenticatedItemsItemIdRoute: AuthenticatedItemsItemIdRoute,
 }
 

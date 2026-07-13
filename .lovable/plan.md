@@ -1,22 +1,44 @@
-## Surface the Admin entry point
+## Goal
 
-### Diagnosis
-The feed header already renders an **Admin** link in the top-right (and again in the empty state) whenever the signed-in user has the `admin` role — see `src/routes/_authenticated.feed.tsx` (`{admin?.isAdmin && <Link to="/admin">…}`). Right now the database has:
+Give each signed-in user a personal "My Stuff" view where they can see everything they've claimed (free items) and everything they've bid on (auction items), plus the ability to unclaim a free item so someone else can grab it. Auction bids remain final — no cancel.
 
-- **Camille** — admin
-- **Ashling** — user (no admin role)
+## New route
 
-If you're signed in as Ashling, the link is intentionally hidden. Nothing to build UI-side — the entry point exists.
+`src/routes/_authenticated.my.tsx` → `/my`
 
-### Fix
-Grant Ashling the `admin` role via a one-row insert into `user_roles`. After that, the Admin link will show in the feed header on next load, and `/admin` + `/admin/results` will be reachable.
+Two sections:
+- **Claimed** — free items where `claimed_by = me`. Each row has an "Unclaim" button (with confirm).
+- **Bids** — auction items where I have a bid, showing the amount I bid. No cancel button; small note "Bids are final".
 
-```sql
-INSERT INTO public.user_roles (user_id, role)
-VALUES ('8b926d18-0318-4d14-8db2-7a61c7de342b', 'admin')
-ON CONFLICT DO NOTHING;
-```
+Empty state when both are empty: "Nothing yet — head back to the sale."
 
-### Out of scope
-- No new UI, no new route, no additional nav placement — the existing header link is the intended access point for a private friends-only app.
-- If you'd rather this be Camille and not Ashling, say the word and I'll promote the other account instead (or both).
+Header link from `/feed` (a small bag/cart icon next to the admin/sign-out buttons) pointing to `/my`.
+
+## Server functions (`src/lib/items.functions.ts`)
+
+- `listMyStuff` — auth-required. Returns `{ claimed: FeedItem[]; bids: (FeedItem & { my_bid_amount: number })[] }`. Runs two queries scoped to `userId`, joins with `items`, signs photos.
+- `unclaimItem` — auth-required. Calls a new SECURITY DEFINER SQL function `unclaim_free_item(_item_id)` that:
+  - checks the sale hasn't closed
+  - verifies the row is `type='free'`, `status='claimed'`, `claimed_by = auth.uid()`
+  - sets `status='available'`, `claimed_by=null`
+  - raises if any check fails
+
+Auction bids: no server function to cancel. The UI does not offer it.
+
+## Migration
+
+Add function `public.unclaim_free_item(_item_id uuid)` mirroring the existing `claim_free_item` shape (SECURITY DEFINER, `search_path=public`, respects sale end time, only lets the current claimant release their own item). Existing RLS on `items` already blocks direct client updates, so the SECURITY DEFINER function is the only path.
+
+## UI details
+
+- Card layout matches the feed's square thumbnail style so it feels consistent.
+- Each card shows title, thumbnail, category chip, and either "Claimed" badge + Unclaim button, or "You bid ¥X" badge.
+- Unclaim triggers a `useMutation`, invalidates `["items"]`, `["item", id]`, and `["my-stuff"]`.
+- Live refresh: subscribe to `items` + `bids` changes and invalidate `["my-stuff"]`.
+- After the sale ends (countdown expired), hide the Unclaim button — final state is locked.
+
+## Technical notes
+
+- Query key: `["my-stuff"]`. Loader primes with `ensureQueryData`, component uses `useSuspenseQuery`.
+- Reuse `signPhotos` helper already in `items.functions.ts`.
+- Add `Bag` / `ShoppingBag` lucide icon import on the feed header.
