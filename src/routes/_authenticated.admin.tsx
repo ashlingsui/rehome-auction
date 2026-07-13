@@ -219,6 +219,9 @@ function AdminPage() {
                   <p className="mt-2 text-sm text-muted-foreground">
                     Tap to add a photo
                   </p>
+                  <p className="mt-1 text-xs text-muted-foreground/70">
+                    or paste from clipboard (⌘V)
+                  </p>
                 </div>
               )}
               <input
