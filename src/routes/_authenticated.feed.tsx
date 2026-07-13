@@ -3,9 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { listItems, isAdmin, type FeedItem } from "@/lib/items.functions";
+import { saleQuery } from "@/components/CountdownChip";
 import { CATEGORIES, categoryLabel, categoryToken } from "@/lib/categories";
 import { cn } from "@/lib/utils";
-import { Sparkles, Plus, LogOut } from "lucide-react";
+import { Sparkles, Plus, LogOut, Lock } from "lucide-react";
 
 const itemsQuery = queryOptions({
   queryKey: ["items"],
@@ -30,8 +31,15 @@ export const Route = createFileRoute("/_authenticated/feed")({
 function FeedPage() {
   const { data: items } = useSuspenseQuery(itemsQuery);
   const { data: admin } = useQuery(adminQuery);
+  const { data: sale } = useQuery(saleQuery);
   const [cat, setCat] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"all" | "auction" | "free">("all");
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const expired = !!sale && new Date(sale.auction_ends_at).getTime() <= nowMs;
   const navigate = useNavigate();
 
   // Live: refetch on item/bid changes
@@ -153,7 +161,7 @@ function FeedPage() {
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {filtered.map((item, i) => (
-              <ItemCard key={item.id} item={item} idx={i} />
+              <ItemCard key={item.id} item={item} idx={i} expired={expired} />
             ))}
           </div>
         )}
@@ -220,7 +228,7 @@ function CatPill({
   );
 }
 
-function ItemCard({ item, idx }: { item: FeedItem; idx: number }) {
+function ItemCard({ item, idx, expired }: { item: FeedItem; idx: number; expired: boolean }) {
   const token = categoryToken(item.category);
   const chipTone: Record<string, string> = {
     matcha: "bg-matcha/80 text-matcha-foreground",
@@ -293,6 +301,15 @@ function ItemCard({ item, idx }: { item: FeedItem; idx: number }) {
             <div className="text-sm font-medium">
               by {item.claimed_by_name ?? "a friend"}
             </div>
+          </div>
+        )}
+
+        {!claimed && expired && (
+          <div className="absolute inset-0 flex items-center justify-center bg-foreground/45 backdrop-blur-[2px]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-background/95 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-foreground">
+              <Lock className="h-3 w-3" strokeWidth={2.5} />
+              Closed
+            </span>
           </div>
         )}
 

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery, queryOptions } from "@tanstack/react-query";
+import { useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createItem,
@@ -9,13 +9,15 @@ import {
   getUploadPath,
 } from "@/lib/admin.functions";
 import { isAdmin } from "@/lib/items.functions";
+import { updateSaleEndsAt } from "@/lib/sale.functions";
+import { saleQuery } from "@/components/CountdownChip";
 import { CATEGORIES } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, ImagePlus, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, ImagePlus, Sparkles, Loader2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const adminQuery = queryOptions({
@@ -158,6 +160,10 @@ function AdminPage() {
             Add to the sale
           </h1>
         </div>
+
+        <SaleTimerCard />
+
+
 
         <form onSubmit={onPublish} className="mt-8 space-y-6">
           {/* Photo */}
@@ -341,3 +347,67 @@ function AdminPage() {
     </div>
   );
 }
+
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function SaleTimerCard() {
+  const { data: sale } = useQuery(saleQuery);
+  const qc = useQueryClient();
+  const updateFn = useServerFn(updateSaleEndsAt);
+  const [value, setValue] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  const current = sale ? toLocalInput(sale.auction_ends_at) : "";
+  const editing = value || current;
+
+  async function onSave() {
+    if (!value) return;
+    setSaving(true);
+    try {
+      const iso = new Date(value).toISOString();
+      await updateFn({ data: { ends_at: iso } });
+      await qc.invalidateQueries({ queryKey: ["sale-settings"] });
+      setValue("");
+      toast.success("Sale timer updated.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't update timer.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="mt-6 rounded-3xl border border-border bg-card p-5">
+      <div className="flex items-center gap-2">
+        <Clock className="h-4 w-4 text-muted-foreground" />
+        <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          Sale timer
+        </div>
+      </div>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Everything locks automatically when the countdown hits zero.
+      </p>
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <Input
+          type="datetime-local"
+          value={editing}
+          onChange={(e) => setValue(e.target.value)}
+          className="h-12 rounded-2xl border-border bg-background text-base"
+        />
+        <Button
+          type="button"
+          onClick={onSave}
+          disabled={saving || !value || value === current}
+          className="h-12 rounded-2xl bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+        >
+          {saving ? "Saving…" : "Save"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+

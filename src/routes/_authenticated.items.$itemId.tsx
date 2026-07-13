@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getItem, placeBid, claimItem } from "@/lib/items.functions";
+import { saleQuery } from "@/components/CountdownChip";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/items/$itemId")({
 function ItemDetail() {
   const { itemId } = Route.useParams();
   const { data: item } = useSuspenseQuery(itemQuery(itemId));
+  const { data: sale } = useQuery(saleQuery);
   const qc = useQueryClient();
   const navigate = useNavigate();
 
@@ -38,6 +40,12 @@ function ItemDetail() {
 
   const [bidAmount, setBidAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const expired = !!sale && new Date(sale.auction_ends_at).getTime() <= nowMs;
 
   // Live refresh on updates to this item / bids
   useEffect(() => {
@@ -190,7 +198,15 @@ function ItemDetail() {
       {!claimed && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border/70 bg-background/95 px-5 py-4 backdrop-blur-lg">
           <div className="mx-auto max-w-2xl">
-            {item.type === "auction" ? (
+            {expired ? (
+              <Button
+                disabled
+                className="h-14 w-full rounded-2xl bg-muted text-base font-medium text-muted-foreground"
+              >
+                <Lock className="mr-2 h-4 w-4" />
+                {item.type === "auction" ? "Auction Closed" : "Sale Closed"}
+              </Button>
+            ) : item.type === "auction" ? (
               item.user_has_bid ? (
                 <Button
                   disabled
@@ -233,7 +249,7 @@ function ItemDetail() {
                 Claim It!
               </Button>
             )}
-            {item.type === "auction" && !item.user_has_bid && (
+            {!expired && item.type === "auction" && !item.user_has_bid && (
               <p className="mt-2 text-center text-[11px] text-muted-foreground">
                 One bid per person · Blind auction · No takebacks
               </p>
