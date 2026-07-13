@@ -160,7 +160,7 @@ function FeedPage() {
           <div className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             A little note 💌
           </div>
-          This is a friends & family thing, so please keep bids gentle. Every bid goes straight into Ashling's wine fund — do not encourage her drinking too much — so bid what feels fair, not what feels competitive. 🍷</div>
+          Ashling is clearing out her apartment and has too much stuff, so she needs your help finding new homes for things. Items marked "Free" are first come, first served — grab them before someone else does. Items marked "Auction" are blind bids: you only get to bid once, no one sees what others bid, and the highest offer wins. This is a friends & family thing, so please keep bids gentle. Every bid goes straight into Ashling's wine fund — do not encourage her drinking too much — so bid what feels fair, not what feels competitive. 🍷</div>
 
         {filtered.length === 0 ? (
           <EmptyState admin={!!admin?.isAdmin} />
