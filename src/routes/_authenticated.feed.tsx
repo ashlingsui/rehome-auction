@@ -57,6 +57,10 @@ function FeedPage() {
   const { data: sale } = useQuery(saleQuery);
   const [cat, setCat] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"all" | "auction" | "free">("all");
+  const [adminUnlocked, setAdminUnlocked] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.sessionStorage.getItem(ADMIN_UNLOCK_KEY) === "1";
+  });
   const [nowMs, setNowMs] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 30_000);
