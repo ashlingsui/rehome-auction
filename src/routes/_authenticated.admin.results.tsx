@@ -28,9 +28,9 @@ type Tab = "active" | "closed" | "free";
 function ResultsPage() {
   const { data: adminCheck, isLoading: adminLoading } = useQuery(adminQuery);
   const { data, isLoading } = useQuery(resultsQuery);
+  const [tab, setTab] = useState<Tab | null>(null);
 
   const saleClosed = data?.sale_closed ?? false;
-  const [tab, setTab] = useState<Tab | null>(null);
   const activeTab: Tab = tab ?? (saleClosed ? "closed" : "active");
 
   if (adminLoading || isLoading) {
@@ -40,6 +40,7 @@ function ResultsPage() {
       </div>
     );
   }
+
 
   if (!adminCheck?.isAdmin) {
     return (
