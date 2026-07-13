@@ -407,23 +407,6 @@ function SaleTimerCard() {
           {saving ? "Saving…" : "Save"}
         </Button>
       </div>
-    </div>
-      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <Input
-          type="datetime-local"
-          value={editing}
-          onChange={(e) => setValue(e.target.value)}
-          className="h-12 rounded-2xl border-border bg-background text-base"
-        />
-        <Button
-          type="button"
-          onClick={onSave}
-          disabled={saving || !value || value === current}
-          className="h-12 rounded-2xl bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
-        >
-          {saving ? "Saving…" : "Save"}
-        </Button>
-      </div>
       <Link
         to="/admin/results"
         className="mt-4 inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-foreground hover:opacity-70"
