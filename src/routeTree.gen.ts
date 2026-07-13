@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated.feed'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedItemsItemIdRouteImport } from './routes/_authenticated.items.$itemId'
+import { Route as AuthenticatedAdminResultsRouteImport } from './routes/_authenticated.admin.results'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -46,19 +47,27 @@ const AuthenticatedItemsItemIdRoute =
     path: '/items/$itemId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminResultsRoute =
+  AuthenticatedAdminResultsRouteImport.update({
+    id: '/results',
+    path: '/results',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/feed': typeof AuthenticatedFeedRoute
+  '/admin/results': typeof AuthenticatedAdminResultsRoute
   '/items/$itemId': typeof AuthenticatedItemsItemIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/feed': typeof AuthenticatedFeedRoute
+  '/admin/results': typeof AuthenticatedAdminResultsRoute
   '/items/$itemId': typeof AuthenticatedItemsItemIdRoute
 }
 export interface FileRoutesById {
@@ -66,15 +75,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
+  '/_authenticated/admin/results': typeof AuthenticatedAdminResultsRoute
   '/_authenticated/items/$itemId': typeof AuthenticatedItemsItemIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/admin' | '/feed' | '/items/$itemId'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/feed'
+    | '/admin/results'
+    | '/items/$itemId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/admin' | '/feed' | '/items/$itemId'
+  to: '/' | '/auth' | '/admin' | '/feed' | '/admin/results' | '/items/$itemId'
   id:
     | '__root__'
     | '/'
@@ -82,6 +98,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/feed'
+    | '/_authenticated/admin/results'
     | '/_authenticated/items/$itemId'
   fileRoutesById: FileRoutesById
 }
@@ -135,17 +152,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedItemsItemIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/results': {
+      id: '/_authenticated/admin/results'
+      path: '/results'
+      fullPath: '/admin/results'
+      preLoaderRoute: typeof AuthenticatedAdminResultsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminResultsRoute: typeof AuthenticatedAdminResultsRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminResultsRoute: AuthenticatedAdminResultsRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedItemsItemIdRoute: typeof AuthenticatedItemsItemIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedItemsItemIdRoute: AuthenticatedItemsItemIdRoute,
 }
