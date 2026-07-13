@@ -9,7 +9,7 @@ import {
   getUploadPath,
 } from "@/lib/admin.functions";
 import { isAdmin } from "@/lib/items.functions";
-import { updateSaleEndsAt } from "@/lib/sale.functions";
+import { updateSaleEndsAt, updateMaxBidAmount } from "@/lib/sale.functions";
 import { saleQuery } from "@/components/CountdownChip";
 import { CATEGORIES } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
@@ -395,11 +395,16 @@ function SaleTimerCard() {
   const { data: sale } = useQuery(saleQuery);
   const qc = useQueryClient();
   const updateFn = useServerFn(updateSaleEndsAt);
+  const updateMaxFn = useServerFn(updateMaxBidAmount);
   const [value, setValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [maxBid, setMaxBid] = useState<string>("");
+  const [savingMax, setSavingMax] = useState(false);
 
   const current = sale ? toLocalInput(sale.auction_ends_at) : "";
   const editing = value || current;
+  const currentMax = sale ? String(sale.max_bid_amount) : "";
+  const editingMax = maxBid || currentMax;
 
   async function onSave() {
     if (!value) return;
@@ -414,6 +419,22 @@ function SaleTimerCard() {
       toast.error(err instanceof Error ? err.message : "Couldn't update timer.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function onSaveMax() {
+    const n = Number(maxBid);
+    if (!Number.isFinite(n) || n <= 0) return;
+    setSavingMax(true);
+    try {
+      await updateMaxFn({ data: { max_bid_amount: n } });
+      await qc.invalidateQueries({ queryKey: ["sale-settings"] });
+      setMaxBid("");
+      toast.success("Bid limit updated.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't update bid limit.");
+    } finally {
+      setSavingMax(false);
     }
   }
 
@@ -444,6 +465,35 @@ function SaleTimerCard() {
           {saving ? "Saving…" : "Save"}
         </Button>
       </div>
+
+      <div className="mt-5 border-t border-border pt-4">
+        <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          Max bid (¥)
+        </div>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Cap the highest amount anyone can bid on a single item.
+        </p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <Input
+            type="number"
+            inputMode="decimal"
+            min={1}
+            step="1"
+            value={editingMax}
+            onChange={(e) => setMaxBid(e.target.value)}
+            className="h-12 rounded-2xl border-border bg-background text-base"
+          />
+          <Button
+            type="button"
+            onClick={onSaveMax}
+            disabled={savingMax || !maxBid || maxBid === currentMax}
+            className="h-12 rounded-2xl bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+          >
+            {savingMax ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </div>
+
       <Link
         to="/admin/results"
         className="mt-4 inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-foreground hover:opacity-70"
@@ -453,4 +503,5 @@ function SaleTimerCard() {
     </div>
   );
 }
+
 

@@ -252,7 +252,7 @@ function CatPill({
   );
 }
 
-function ItemCard({ item, idx, expired }: { item: FeedItem; idx: number; expired: boolean }) {
+function ItemCard({ item, expired }: { item: FeedItem; idx: number; expired: boolean }) {
   const token = categoryToken(item.category);
   const chipTone: Record<string, string> = {
     matcha: "bg-matcha/80 text-matcha-foreground",
@@ -264,10 +264,6 @@ function ItemCard({ item, idx, expired }: { item: FeedItem; idx: number; expired
   };
   const claimed = item.status === "claimed";
 
-  // Vary card heights slightly for a magazine feel
-  const heights = ["h-56", "h-72", "h-64", "h-80"];
-  const h = heights[idx % heights.length];
-
   return (
     <Link
       to="/items/$itemId"
@@ -276,11 +272,11 @@ function ItemCard({ item, idx, expired }: { item: FeedItem; idx: number; expired
     >
       <div
         className={cn(
-          "relative overflow-hidden rounded-3xl border border-border bg-card transition",
-          h,
+          "relative aspect-square overflow-hidden rounded-3xl border border-border bg-card transition",
           claimed && "opacity-70",
         )}
       >
+
         {item.photo_signed_url ? (
           <img
             src={item.photo_signed_url}
