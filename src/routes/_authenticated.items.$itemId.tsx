@@ -31,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/items/$itemId")({
 function ItemDetail() {
   const { itemId } = Route.useParams();
   const { data: item } = useSuspenseQuery(itemQuery(itemId));
+  const { data: sale } = useQuery(saleQuery);
   const qc = useQueryClient();
   const navigate = useNavigate();
 
@@ -39,6 +40,12 @@ function ItemDetail() {
 
   const [bidAmount, setBidAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const expired = !!sale && new Date(sale.auction_ends_at).getTime() <= nowMs;
 
   // Live refresh on updates to this item / bids
   useEffect(() => {
