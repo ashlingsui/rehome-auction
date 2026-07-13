@@ -1,0 +1,1 @@
+ALTER TABLE public.sale_settings ADD COLUMN IF NOT EXISTS max_bid_amount numeric NOT NULL DEFAULT 200;

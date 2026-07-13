@@ -110,16 +110,19 @@ export type Database = {
         Row: {
           auction_ends_at: string
           id: boolean
+          max_bid_amount: number
           updated_at: string
         }
         Insert: {
           auction_ends_at: string
           id?: boolean
+          max_bid_amount?: number
           updated_at?: string
         }
         Update: {
           auction_ends_at?: string
           id?: boolean
+          max_bid_amount?: number
           updated_at?: string
         }
         Relationships: []
