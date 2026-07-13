@@ -74,7 +74,13 @@ export const updateItem = createServerFn({ method: "POST" })
     });
     if (!isAdmin) throw new Error("Admins only.");
 
-    const patch: Record<string, unknown> = {
+    const patch: {
+      title: string;
+      category: typeof data.category;
+      type: typeof data.type;
+      description: string | null;
+      photo_url?: string;
+    } = {
       title: data.title,
       category: data.category,
       type: data.type,
