@@ -189,6 +189,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      unclaim_free_item: {
+        Args: { _item_id: string }
+        Returns: {
+          category: Database["public"]["Enums"]["item_category"]
+          claimed_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          photo_url: string
+          starting_price: number | null
+          status: Database["public"]["Enums"]["item_status"]
+          title: string
+          type: Database["public"]["Enums"]["item_type"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "user"
