@@ -19,13 +19,6 @@ export function phoneToSyntheticEmail(phone: string): string {
   return `user${n}@movingsale.local`;
 }
 
-// A deterministic-but-unguessable-per-app password derived from phone.
-// Not a security boundary; the app is a private friends-only sale.
-export function phoneToPassword(phone: string): string {
-  const n = normalizePhone(phone).replace(/\D/g, "");
-  return `ms_${n}_shhh_2026`;
-}
-
 export function formatPhoneDisplay(input: string): string {
   const n = normalizePhone(input).replace(/\D/g, "");
   if (n.length === 10) return `(${n.slice(0, 3)}) ${n.slice(3, 6)}-${n.slice(6)}`;

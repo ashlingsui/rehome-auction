@@ -90,18 +90,21 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          passcode_set: boolean
           phone: string
         }
         Insert: {
           created_at?: string
           id: string
           name: string
+          passcode_set?: boolean
           phone: string
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
+          passcode_set?: boolean
           phone?: string
         }
         Relationships: []

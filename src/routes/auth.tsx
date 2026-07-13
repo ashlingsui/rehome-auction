@@ -1,15 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  isValidPhone,
-  normalizePhone,
-  phoneToPassword,
-  phoneToSyntheticEmail,
-} from "@/lib/phone";
+import { isValidPhone, phoneToSyntheticEmail } from "@/lib/phone";
+import { claimAccount } from "@/lib/auth.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -18,8 +15,10 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const claim = useServerFn(claimAccount);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [passcode, setPasscode] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,14 +31,17 @@ function AuthPage() {
     e.preventDefault();
     if (!name.trim()) return toast.error("Tell me your name!");
     if (!isValidPhone(phone)) return toast.error("That phone number looks off.");
+    if (passcode.trim().length < 4)
+      return toast.error("Pick a passcode of at least 4 characters.");
     setLoading(true);
     const email = phoneToSyntheticEmail(phone);
-    const password = phoneToPassword(phone);
 
-    // Try sign-in first (returning friend); fall back to sign-up.
-    const signIn = await supabase.auth.signInWithPassword({ email, password });
+    // 1) Try normal sign-in with the entered passcode.
+    const signIn = await supabase.auth.signInWithPassword({
+      email,
+      password: passcode,
+    });
     if (signIn.data.session) {
-      // Update name in case they changed it.
       await supabase
         .from("profiles")
         .update({ name: name.trim() })
@@ -49,31 +51,34 @@ function AuthPage() {
       return;
     }
 
-    const signUp = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name: name.trim(), phone: normalizePhone(phone) },
-      },
-    });
-    setLoading(false);
-    if (signUp.error) {
-      toast.error(signUp.error.message);
-      return;
-    }
-    if (signUp.data.session) {
-      navigate({ to: "/feed", replace: true });
-    } else {
-      // Should not happen with auto_confirm on, but sign in anyway.
-      const retry = await supabase.auth.signInWithPassword({ email, password });
+    // 2) Not signed in — either brand-new user, or existing user claiming
+    //    their passcode for the first time. Let the server decide.
+    try {
+      const result = await claim({
+        data: { name: name.trim(), phone, passcode },
+      });
+      if (result.status === "exists") {
+        setLoading(false);
+        toast.error(
+          "Wrong passcode. If you forgot it, ask the host to reset your account.",
+        );
+        return;
+      }
+      const retry = await supabase.auth.signInWithPassword({
+        email,
+        password: passcode,
+      });
+      setLoading(false);
       if (retry.data.session) navigate({ to: "/feed", replace: true });
       else toast.error("Couldn't sign you in — try again.");
+    } catch (err) {
+      setLoading(false);
+      toast.error(err instanceof Error ? err.message : "Something went wrong.");
     }
   }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Floating pastel blobs */}
       <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-matcha opacity-60 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -right-16 h-80 w-80 rounded-full bg-lilac opacity-60 blur-3xl" />
       <div className="pointer-events-none absolute top-1/3 right-1/4 h-40 w-40 rounded-full bg-tangerine opacity-40 blur-3xl" />
@@ -125,8 +130,22 @@ function AuthPage() {
               autoComplete="tel"
               className="h-12 rounded-2xl border-border bg-background text-base"
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="passcode" className="text-xs uppercase tracking-wider text-muted-foreground">
+              Passcode
+            </Label>
+            <Input
+              id="passcode"
+              type="password"
+              value={passcode}
+              onChange={(e) => setPasscode(e.target.value)}
+              placeholder="At least 4 characters"
+              autoComplete="current-password"
+              className="h-12 rounded-2xl border-border bg-background text-base"
+            />
             <p className="text-xs text-muted-foreground">
-              So I can text you if you win — no verification, no spam.
+              First time? Pick anything memorable — you'll use it to sign back in.
             </p>
           </div>
 
