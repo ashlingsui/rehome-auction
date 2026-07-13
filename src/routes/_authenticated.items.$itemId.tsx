@@ -3,12 +3,13 @@ import { useEffect, useState } from "react";
 import { useQuery, useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getItem, placeBid, claimItem, isAdmin } from "@/lib/items.functions";
+import { deleteItem } from "@/lib/admin.functions";
 import { saleQuery } from "@/components/CountdownChip";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles, Lock, Gift, DollarSign, Pencil } from "lucide-react";
+import { ArrowLeft, Sparkles, Lock, Gift, DollarSign, Pencil, Trash2 } from "lucide-react";
 import { categoryLabel } from "@/lib/categories";
 
 const itemQuery = (id: string) =>
@@ -38,6 +39,8 @@ function ItemDetail() {
 
   const placeBidFn = useServerFn(placeBid);
   const claimItemFn = useServerFn(claimItem);
+  const deleteItemFn = useServerFn(deleteItem);
+
 
   const [bidAmount, setBidAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -107,7 +110,20 @@ function ItemDetail() {
     }
   }
 
+  async function onDelete() {
+    if (!confirm(`Delete "${item.title}"? This can't be undone.`)) return;
+    try {
+      await deleteItemFn({ data: { id: item.id } });
+      toast.success("Deleted.");
+      qc.invalidateQueries({ queryKey: ["items"] });
+      navigate({ to: "/feed" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't delete.");
+    }
+  }
+
   const claimed = item.status === "claimed";
+
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -121,14 +137,23 @@ function ItemDetail() {
           Back to sale
         </button>
         {adminCheck?.isAdmin && (
-          <Link
-            to="/admin/items/$itemId/edit"
-            params={{ itemId }}
-            className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-background/90 px-3 text-sm font-medium text-foreground shadow-sm backdrop-blur hover:bg-muted"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            Edit
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/admin/items/$itemId/edit"
+              params={{ itemId }}
+              className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-background/90 px-3 text-sm font-medium text-foreground shadow-sm backdrop-blur hover:bg-muted"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit
+            </Link>
+            <button
+              onClick={onDelete}
+              className="inline-flex h-10 items-center gap-1 rounded-full border border-destructive/30 bg-background/90 px-3 text-sm font-medium text-destructive shadow-sm backdrop-blur hover:bg-destructive/10"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete
+            </button>
+          </div>
         )}
       </div>
 
