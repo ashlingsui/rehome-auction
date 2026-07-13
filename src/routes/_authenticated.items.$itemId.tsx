@@ -117,7 +117,7 @@ function ItemDetail() {
   return (
     <div className="min-h-screen bg-background pb-32">
       {/* Sticky back */}
-      <div className="sticky top-0 z-30 bg-gradient-to-b from-background via-background/90 to-transparent p-4">
+      <div className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-gradient-to-b from-background via-background/90 to-transparent p-4">
         <button
           onClick={() => navigate({ to: "/feed" })}
           className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-background/90 px-3 text-sm font-medium text-foreground shadow-sm backdrop-blur hover:bg-muted"
@@ -125,6 +125,16 @@ function ItemDetail() {
           <ArrowLeft className="h-4 w-4" />
           Back to sale
         </button>
+        {adminCheck?.isAdmin && (
+          <Link
+            to="/admin/items/$itemId/edit"
+            params={{ itemId }}
+            className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-background/90 px-3 text-sm font-medium text-foreground shadow-sm backdrop-blur hover:bg-muted"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Edit
+          </Link>
+        )}
       </div>
 
       <div className="mx-auto max-w-2xl px-5">
