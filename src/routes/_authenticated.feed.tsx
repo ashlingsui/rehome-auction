@@ -6,13 +6,29 @@ import { listItems, isAdmin, type FeedItem } from "@/lib/items.functions";
 import { saleQuery } from "@/components/CountdownChip";
 import { CATEGORIES, categoryLabel, categoryToken } from "@/lib/categories";
 import { cn } from "@/lib/utils";
-import { Sparkles, LogOut, Lock, ShoppingBag, ChevronDown, Plus, BarChart3 } from "lucide-react";
+import { Sparkles, LogOut, Lock, ShoppingBag, ChevronDown, Plus, BarChart3, ShieldCheck } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+const ADMIN_PASSWORD = "080808";
+const ADMIN_UNLOCK_KEY = "adminUnlocked";
+
 
 
 const itemsQuery = queryOptions({
