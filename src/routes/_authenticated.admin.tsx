@@ -161,6 +161,10 @@ function AdminPage() {
           </h1>
         </div>
 
+        <SaleTimerCard />
+
+
+
         <form onSubmit={onPublish} className="mt-8 space-y-6">
           {/* Photo */}
           <div>
