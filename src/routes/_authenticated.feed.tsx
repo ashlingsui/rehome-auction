@@ -161,7 +161,7 @@ function FeedPage() {
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {filtered.map((item, i) => (
-              <ItemCard key={item.id} item={item} idx={i} />
+              <ItemCard key={item.id} item={item} idx={i} expired={expired} />
             ))}
           </div>
         )}
