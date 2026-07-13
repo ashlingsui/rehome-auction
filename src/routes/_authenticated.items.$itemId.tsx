@@ -39,6 +39,8 @@ function ItemDetail() {
 
   const placeBidFn = useServerFn(placeBid);
   const claimItemFn = useServerFn(claimItem);
+  const deleteItemFn = useServerFn(deleteItem);
+
 
   const [bidAmount, setBidAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
