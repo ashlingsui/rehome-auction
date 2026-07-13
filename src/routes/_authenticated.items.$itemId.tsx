@@ -3,12 +3,13 @@ import { useEffect, useState } from "react";
 import { useQuery, useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getItem, placeBid, claimItem, isAdmin } from "@/lib/items.functions";
+import { deleteItem } from "@/lib/admin.functions";
 import { saleQuery } from "@/components/CountdownChip";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles, Lock, Gift, DollarSign, Pencil } from "lucide-react";
+import { ArrowLeft, Sparkles, Lock, Gift, DollarSign, Pencil, Trash2 } from "lucide-react";
 import { categoryLabel } from "@/lib/categories";
 
 const itemQuery = (id: string) =>
