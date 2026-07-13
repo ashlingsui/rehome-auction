@@ -6,7 +6,7 @@ import { listItems, isAdmin, type FeedItem } from "@/lib/items.functions";
 import { saleQuery } from "@/components/CountdownChip";
 import { CATEGORIES, categoryLabel, categoryToken } from "@/lib/categories";
 import { cn } from "@/lib/utils";
-import { Sparkles, Plus, LogOut, Lock } from "lucide-react";
+import { Sparkles, Plus, LogOut, Lock, ShoppingBag } from "lucide-react";
 
 const itemsQuery = queryOptions({
   queryKey: ["items"],
