@@ -222,16 +222,19 @@ function ItemDetail() {
               ) : (
                 <form onSubmit={onBid} className="flex gap-2">
                   <div className="relative flex-1">
-                    <DollarSign className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base font-medium text-muted-foreground">
+                      ¥
+                    </span>
                     <Input
                       value={bidAmount}
                       onChange={(e) => setBidAmount(e.target.value)}
                       type="number"
                       inputMode="decimal"
                       min={item.starting_price ?? 1}
+                      max={200}
                       step="1"
-                      placeholder="Your blind bid"
-                      className="h-14 rounded-2xl border-border bg-background pl-11 text-base"
+                      placeholder="Your blind bid (max ¥200)"
+                      className="h-14 rounded-2xl border-border bg-background pl-9 text-base"
                     />
                   </div>
                   <Button
