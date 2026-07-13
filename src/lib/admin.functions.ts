@@ -52,6 +52,41 @@ export const createItem = createServerFn({ method: "POST" })
     return { id: item.id };
   });
 
+export const updateItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        title: z.string().min(1).max(120),
+        photo_path: z.string().min(1).optional(),
+        category: CATEGORY,
+        type: z.enum(["auction", "free"]),
+        description: z.string().max(1000).optional().nullable(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Admins only.");
+
+    const patch: Record<string, unknown> = {
+      title: data.title,
+      category: data.category,
+      type: data.type,
+      description: data.description ?? null,
+    };
+    if (data.photo_path) patch.photo_url = data.photo_path;
+
+    const { error } = await supabase.from("items").update(patch).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const deleteItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
