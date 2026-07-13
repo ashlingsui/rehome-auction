@@ -106,6 +106,24 @@ export type Database = {
         }
         Relationships: []
       }
+      sale_settings: {
+        Row: {
+          auction_ends_at: string
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          auction_ends_at: string
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          auction_ends_at?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
