@@ -195,6 +195,92 @@ export const claimItem = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const unclaimItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ item_id: z.string().uuid() }).parse(data))
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+    const { error } = await supabase.rpc("unclaim_free_item", { _item_id: data.item_id });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export type MyStuff = {
+  claimed: FeedItem[];
+  bids: Array<FeedItem & { my_bid_amount: number }>;
+};
+
+export const listMyStuff = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<MyStuff> => {
+    const { supabase, userId } = context;
+
+    const [{ data: claimedRows, error: claimedErr }, { data: myBids, error: bidsErr }] =
+      await Promise.all([
+        supabase
+          .from("items")
+          .select("*")
+          .eq("claimed_by", userId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("bids")
+          .select("item_id, amount, items(*)")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false }),
+      ]);
+    if (claimedErr) throw new Error(claimedErr.message);
+    if (bidsErr) throw new Error(bidsErr.message);
+
+    type BidRow = { item_id: string; amount: number | string; items: Record<string, unknown> | null };
+    const bidRows = (myBids ?? []) as unknown as BidRow[];
+
+    const allItems: Array<Record<string, unknown>> = [];
+    for (const row of claimedRows ?? []) allItems.push(row as Record<string, unknown>);
+    for (const b of bidRows) if (b.items) allItems.push(b.items);
+
+    const paths = Array.from(
+      new Set(allItems.map((i) => i.photo_url as string).filter(Boolean)),
+    );
+    const signed = await signPhotos(
+      supabase as unknown as ReturnType<typeof mockClient>,
+      paths,
+    );
+
+    function toFeedItem(i: Record<string, unknown>): FeedItem {
+      return {
+        id: i.id as string,
+        title: i.title as string,
+        photo_url: i.photo_url as string,
+        photo_signed_url: signed[i.photo_url as string] ?? "",
+        category: i.category as string,
+        type: i.type as "auction" | "free",
+        description: (i.description as string | null) ?? null,
+        starting_price:
+          i.starting_price !== null && i.starting_price !== undefined
+            ? Number(i.starting_price)
+            : null,
+        status: i.status as "available" | "claimed",
+        claimed_by: (i.claimed_by as string | null) ?? null,
+        claimed_by_name: null,
+        bid_count: 0,
+        user_has_bid: false,
+        created_at: i.created_at as string,
+      };
+    }
+
+    return {
+      claimed: (claimedRows ?? []).map((r) => toFeedItem(r as Record<string, unknown>)),
+      bids: bidRows
+        .filter((b) => b.items)
+        .map((b) => ({
+          ...toFeedItem(b.items as Record<string, unknown>),
+          user_has_bid: true,
+          my_bid_amount: Number(b.amount),
+        })),
+    };
+  });
+
+
 export const isAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
