@@ -77,19 +77,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1" },
-      { title: "The Moving Sale — a chic silent auction with friends" },
+      { title: "The Moving Sale — a silent auction with friends" },
       {
         name: "description",
         content:
           "A private moving sale and silent auction. Bid blind on my favorite pieces or claim the free stuff before it's gone.",
       },
-      { property: "og:title", content: "The Moving Sale" },
+      { property: "og:title", content: "The Moving Sale — a silent auction with friends" },
       {
         property: "og:description",
-        content: "A private silent auction and free-grab pile with my favorite things.",
+        content: "A private moving sale and silent auction. Bid blind on my favorite pieces or claim the free stuff before it's gone.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "The Moving Sale — a silent auction with friends" },
+      { name: "twitter:description", content: "A private moving sale and silent auction. Bid blind on my favorite pieces or claim the free stuff before it's gone." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f8baa0be-820f-4082-8393-c22cc6b5d3cf" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f8baa0be-820f-4082-8393-c22cc6b5d3cf" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
