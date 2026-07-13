@@ -71,17 +71,12 @@ function ItemDetail() {
   async function onBid(e: React.FormEvent) {
     e.preventDefault();
     const amt = Number(bidAmount);
-    const maxBid = sale?.max_bid_amount ?? 200;
     if (!Number.isFinite(amt) || amt <= 0) {
       toast.error("Enter a real number.");
       return;
     }
     if (item.starting_price && amt < item.starting_price) {
       toast.error(`Minimum bid is ¥${item.starting_price}.`);
-      return;
-    }
-    if (amt > maxBid) {
-      toast.error(`Max bid is ¥${maxBid} — it's a friends & family sale 💛`);
       return;
     }
 
@@ -187,7 +182,7 @@ function ItemDetail() {
         {item.type === "auction" && item.starting_price && !claimed && (
           <div className="mt-4 text-sm text-muted-foreground">
             Bidding opens at{" "}
-            <span className="font-medium text-foreground">¥{item.starting_price}</span> · max ¥{sale?.max_bid_amount ?? 200}.
+            <span className="font-medium text-foreground">¥{item.starting_price}</span>.
           </div>
         )}
 
@@ -245,9 +240,8 @@ function ItemDetail() {
                       type="number"
                       inputMode="decimal"
                       min={item.starting_price ?? 1}
-                      max={sale?.max_bid_amount ?? 200}
                       step="1"
-                      placeholder={`Your blind bid (max ¥${sale?.max_bid_amount ?? 200})`}
+                      placeholder="Your blind bid"
                       className="h-14 rounded-2xl border-border bg-background pl-9 text-base"
 
                     />
