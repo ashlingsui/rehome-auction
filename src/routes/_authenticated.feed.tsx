@@ -304,6 +304,15 @@ function ItemCard({ item, idx, expired }: { item: FeedItem; idx: number; expired
           </div>
         )}
 
+        {!claimed && expired && (
+          <div className="absolute inset-0 flex items-center justify-center bg-foreground/45 backdrop-blur-[2px]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-background/95 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-foreground">
+              <Lock className="h-3 w-3" strokeWidth={2.5} />
+              Closed
+            </span>
+          </div>
+        )}
+
         {!claimed && item.type === "auction" && item.bid_count > 0 && (
           <div className="absolute bottom-3 left-3">
             <span className="inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[10px] font-medium text-foreground backdrop-blur">
