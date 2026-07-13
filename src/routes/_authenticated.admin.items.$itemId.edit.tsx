@@ -44,7 +44,11 @@ function EditPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => () => qc.invalidateQueries({ queryKey: ["item", itemId] }), [itemId, qc]);
+  useEffect(() => {
+    return () => {
+      qc.invalidateQueries({ queryKey: ["item", itemId] });
+    };
+  }, [itemId, qc]);
 
   if (adminLoading) {
     return (
