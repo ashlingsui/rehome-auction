@@ -154,8 +154,6 @@ function AdminPage() {
     if (!title.trim()) return toast.error("Add a title.");
     setPublishing(true);
     try {
-      const sp =
-        type === "auction" && startingPrice ? Number(startingPrice) : null;
       await createItemFn({
         data: {
           title: title.trim(),
@@ -163,7 +161,7 @@ function AdminPage() {
           category: category as never,
           type,
           description: description.trim() || null,
-          starting_price: sp && sp > 0 ? sp : null,
+          starting_price: null,
         },
       });
       toast.success("Published!");
