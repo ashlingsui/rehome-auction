@@ -230,13 +230,28 @@ function FeedPage() {
   );
 }
 
-function AdminMenu() {
-  const [unlocked, setUnlocked] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.sessionStorage.getItem(ADMIN_UNLOCK_KEY) === "1";
-  });
+const ADMIN_PULSE_KEY = "adminPulseShown";
+
+function AdminMenu({
+  unlocked,
+  setUnlocked,
+}: {
+  unlocked: boolean;
+  setUnlocked: (v: boolean) => void;
+}) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pw, setPw] = useState("");
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    if (unlocked) return;
+    if (typeof window === "undefined") return;
+    if (window.sessionStorage.getItem(ADMIN_PULSE_KEY) === "1") return;
+    window.sessionStorage.setItem(ADMIN_PULSE_KEY, "1");
+    setPulse(true);
+    const t = setTimeout(() => setPulse(false), 3000);
+    return () => clearTimeout(t);
+  }, [unlocked]);
 
   function submitPw(e: React.FormEvent) {
     e.preventDefault();
@@ -263,10 +278,17 @@ function AdminMenu() {
       <>
         <button
           onClick={() => setDialogOpen(true)}
-          className="inline-flex h-9 items-center gap-1 rounded-full border border-border bg-background px-3.5 text-xs font-medium text-foreground hover:bg-muted"
+          className={cn(
+            "relative inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-4 text-xs font-semibold text-background shadow-sm hover:opacity-90",
+            pulse && "ring-2 ring-foreground/40 ring-offset-2 ring-offset-background animate-pulse",
+          )}
         >
-          <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />
+          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
           Admin
+          <span className="ml-0.5 inline-flex items-center gap-1 rounded-full bg-background/15 px-1.5 py-0.5 text-[9px] uppercase tracking-wider">
+            <Lock className="h-2.5 w-2.5" strokeWidth={3} />
+            Unlock
+          </span>
         </button>
         <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) setPw(""); }}>
           <DialogContent className="sm:max-w-sm">
