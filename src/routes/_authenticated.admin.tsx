@@ -407,6 +407,12 @@ function SaleTimerCard() {
           {saving ? "Saving…" : "Save"}
         </Button>
       </div>
+      <Link
+        to="/admin/results"
+        className="mt-4 inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-foreground hover:opacity-70"
+      >
+        View results →
+      </Link>
     </div>
   );
 }
