@@ -104,7 +104,7 @@ function ItemDetail() {
       {/* Sticky back */}
       <div className="sticky top-0 z-30 bg-gradient-to-b from-background via-background/90 to-transparent p-4">
         <button
-          onClick={() => navigate({ to: "/_authenticated/feed" })}
+          onClick={() => navigate({ to: "/feed" })}
           className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-background/90 px-3 text-sm font-medium text-foreground shadow-sm backdrop-blur hover:bg-muted"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -246,7 +246,7 @@ function ItemDetail() {
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border/70 bg-background/95 px-5 py-4 backdrop-blur-lg">
           <div className="mx-auto max-w-2xl text-center text-sm text-muted-foreground">
             Snapped up by {item.claimed_by_name ?? "someone quick"}.{" "}
-            <Link to="/_authenticated/feed" className="font-medium text-foreground underline">
+            <Link to="/feed" className="font-medium text-foreground underline">
               See what else is left →
             </Link>
           </div>

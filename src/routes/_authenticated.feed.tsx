@@ -90,7 +90,7 @@ function FeedPage() {
           <div className="flex items-center gap-2">
             {admin?.isAdmin && (
               <Link
-                to="/_authenticated/admin"
+                to="/admin"
                 className="inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-3.5 text-xs font-medium text-background hover:opacity-90"
               >
                 <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -238,7 +238,7 @@ function ItemCard({ item, idx }: { item: FeedItem; idx: number }) {
 
   return (
     <Link
-      to="/_authenticated/items/$itemId"
+      to="/items/$itemId"
       params={{ itemId: item.id }}
       className="group relative block"
     >
@@ -331,7 +331,7 @@ function EmptyState({ admin }: { admin: boolean }) {
       </p>
       {admin && (
         <Link
-          to="/_authenticated/admin"
+          to="/admin"
           className="mt-4 inline-flex h-10 items-center rounded-full bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
         >
           Upload an item

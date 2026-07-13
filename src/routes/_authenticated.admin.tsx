@@ -64,7 +64,7 @@ function AdminPage() {
           Only the person moving out can add items to the sale.
         </p>
         <Link
-          to="/_authenticated/feed"
+          to="/feed"
           className="mt-6 inline-flex h-11 items-center rounded-full bg-foreground px-5 text-sm font-medium text-background"
         >
           Back to the sale
@@ -131,7 +131,7 @@ function AdminPage() {
         },
       });
       toast.success("Published!");
-      navigate({ to: "/_authenticated/feed" });
+      navigate({ to: "/feed" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't publish.");
     } finally {
@@ -143,7 +143,7 @@ function AdminPage() {
     <div className="min-h-screen bg-background pb-16">
       <div className="mx-auto max-w-xl px-5 pt-6">
         <Link
-          to="/_authenticated/feed"
+          to="/feed"
           className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground hover:bg-muted"
         >
           <ArrowLeft className="h-4 w-4" />
