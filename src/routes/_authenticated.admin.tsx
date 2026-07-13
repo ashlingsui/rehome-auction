@@ -212,6 +212,8 @@ function AdminPage() {
         </div>
 
         <SaleTimerCard />
+        <LegacyPasswordCard />
+
 
 
 
