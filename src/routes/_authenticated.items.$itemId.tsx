@@ -198,7 +198,15 @@ function ItemDetail() {
       {!claimed && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border/70 bg-background/95 px-5 py-4 backdrop-blur-lg">
           <div className="mx-auto max-w-2xl">
-            {item.type === "auction" ? (
+            {expired ? (
+              <Button
+                disabled
+                className="h-14 w-full rounded-2xl bg-muted text-base font-medium text-muted-foreground"
+              >
+                <Lock className="mr-2 h-4 w-4" />
+                {item.type === "auction" ? "Auction Closed" : "Sale Closed"}
+              </Button>
+            ) : item.type === "auction" ? (
               item.user_has_bid ? (
                 <Button
                   disabled
@@ -241,7 +249,7 @@ function ItemDetail() {
                 Claim It!
               </Button>
             )}
-            {item.type === "auction" && !item.user_has_bid && (
+            {!expired && item.type === "auction" && !item.user_has_bid && (
               <p className="mt-2 text-center text-[11px] text-muted-foreground">
                 One bid per person · Blind auction · No takebacks
               </p>
