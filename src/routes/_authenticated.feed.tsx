@@ -219,7 +219,101 @@ function FeedPage() {
   );
 }
 
-function TypeChip({
+function AdminMenu() {
+  const [unlocked, setUnlocked] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.sessionStorage.getItem(ADMIN_UNLOCK_KEY) === "1";
+  });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [pw, setPw] = useState("");
+
+  function submitPw(e: React.FormEvent) {
+    e.preventDefault();
+    if (pw === ADMIN_PASSWORD) {
+      window.sessionStorage.setItem(ADMIN_UNLOCK_KEY, "1");
+      setUnlocked(true);
+      setDialogOpen(false);
+      setPw("");
+      toast.success("Admin unlocked");
+    } else {
+      toast.error("Wrong password");
+      setPw("");
+    }
+  }
+
+  function lock() {
+    window.sessionStorage.removeItem(ADMIN_UNLOCK_KEY);
+    setUnlocked(false);
+    toast.success("Admin locked");
+  }
+
+  if (!unlocked) {
+    return (
+      <>
+        <button
+          onClick={() => setDialogOpen(true)}
+          className="inline-flex h-9 items-center gap-1 rounded-full border border-border bg-background px-3.5 text-xs font-medium text-foreground hover:bg-muted"
+        >
+          <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />
+          Admin
+        </button>
+        <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) setPw(""); }}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Admin access</DialogTitle>
+              <DialogDescription>Enter the admin password to unlock.</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={submitPw} className="space-y-3">
+              <Input
+                type="password"
+                inputMode="numeric"
+                autoFocus
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                placeholder="••••••"
+                className="h-11 rounded-2xl"
+              />
+              <DialogFooter>
+                <Button type="submit" className="h-11 w-full rounded-2xl">Unlock</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="inline-flex h-9 items-center gap-1 rounded-full bg-foreground px-3.5 text-xs font-medium text-background hover:opacity-90">
+        <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
+        Admin
+        <ChevronDown className="h-3.5 w-3.5" strokeWidth={2.5} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuItem asChild>
+          <Link to="/admin" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add item
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/admin/results" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Results
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={lock} className="flex items-center gap-2 text-muted-foreground">
+          <Lock className="h-4 w-4" />
+          Lock admin
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+
   active,
   onClick,
   label,
