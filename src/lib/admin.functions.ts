@@ -95,12 +95,9 @@ export const generateDescription = createServerFn({ method: "POST" })
 
     const result = await generateText({
       model,
+      system:
+        "You are a chic interior design copywriter. Write in a light, aesthetic, playful tone — like a magazine caption. Always exactly 2 sentences. Never use quote marks or emojis.",
       messages: [
-        {
-          role: "system",
-          content:
-            "You are a chic interior design copywriter. Write in a light, aesthetic, playful tone — like a magazine caption. Always exactly 2 sentences. Never use quote marks or emojis.",
-        },
         {
           role: "user",
           content: [
