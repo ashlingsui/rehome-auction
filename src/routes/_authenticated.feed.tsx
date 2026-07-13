@@ -119,28 +119,8 @@ function FeedPage() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            {admin?.isAdmin && (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="inline-flex h-9 items-center gap-1 rounded-full bg-foreground px-3.5 text-xs font-medium text-background hover:opacity-90">
-                  Admin
-                  <ChevronDown className="h-3.5 w-3.5" strokeWidth={2.5} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin" className="flex items-center gap-2">
-                      <Plus className="h-4 w-4" />
-                      Add item
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/results" className="flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4" />
-                      Results
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            {admin?.isAdmin && <AdminMenu />}
+
 
             <Link
               to="/my"
