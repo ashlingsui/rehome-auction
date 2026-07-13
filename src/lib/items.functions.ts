@@ -156,18 +156,23 @@ export const getItem = createServerFn({ method: "GET" })
 export const placeBid = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({ item_id: z.string().uuid(), amount: z.number().positive().max(200) }).parse(data),
+    z.object({ item_id: z.string().uuid(), amount: z.number().positive() }).parse(data),
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const { data: settings } = await supabase
       .from("sale_settings")
-      .select("auction_ends_at")
+      .select("auction_ends_at, max_bid_amount")
       .eq("id", true)
       .maybeSingle();
     if (settings && new Date(settings.auction_ends_at).getTime() <= Date.now()) {
       throw new Error("The sale has closed.");
     }
+    const maxBid = Number((settings as { max_bid_amount?: number } | null)?.max_bid_amount ?? 200);
+    if (data.amount > maxBid) {
+      throw new Error(`Max bid is ¥${maxBid} — it's a friends & family sale 💛`);
+    }
+
     const { error } = await supabase
       .from("bids")
       .insert({ item_id: data.item_id, user_id: userId, amount: data.amount });
