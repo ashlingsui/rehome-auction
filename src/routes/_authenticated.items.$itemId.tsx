@@ -70,6 +70,7 @@ function ItemDetail() {
   async function onBid(e: React.FormEvent) {
     e.preventDefault();
     const amt = Number(bidAmount);
+    const maxBid = sale?.max_bid_amount ?? 200;
     if (!Number.isFinite(amt) || amt <= 0) {
       toast.error("Enter a real number.");
       return;
@@ -78,10 +79,11 @@ function ItemDetail() {
       toast.error(`Minimum bid is ¥${item.starting_price}.`);
       return;
     }
-    if (amt > 200) {
-      toast.error("Max bid is ¥200 — it's a friends & family sale 💛");
+    if (amt > maxBid) {
+      toast.error(`Max bid is ¥${maxBid} — it's a friends & family sale 💛`);
       return;
     }
+
     setSubmitting(true);
     try {
       await placeBidFn({ data: { item_id: item.id, amount: amt } });
