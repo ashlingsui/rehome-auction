@@ -9,7 +9,7 @@ import {
   getUploadPath,
 } from "@/lib/admin.functions";
 import { isAdmin } from "@/lib/items.functions";
-import { updateSaleEndsAt } from "@/lib/sale.functions";
+import { updateSaleEndsAt, updateMaxBidAmount } from "@/lib/sale.functions";
 import { saleQuery } from "@/components/CountdownChip";
 import { CATEGORIES } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
