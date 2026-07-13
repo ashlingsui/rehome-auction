@@ -156,7 +156,7 @@ export const getItem = createServerFn({ method: "GET" })
 export const placeBid = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({ item_id: z.string().uuid(), amount: z.number().positive().max(100000) }).parse(data),
+    z.object({ item_id: z.string().uuid(), amount: z.number().positive().max(200) }).parse(data),
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
