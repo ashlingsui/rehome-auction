@@ -32,6 +32,7 @@ function ItemDetail() {
   const { itemId } = Route.useParams();
   const { data: item } = useSuspenseQuery(itemQuery(itemId));
   const { data: sale } = useQuery(saleQuery);
+  const { data: adminCheck } = useQuery({ queryKey: ["is-admin"], queryFn: () => isAdmin() });
   const qc = useQueryClient();
   const navigate = useNavigate();
 
