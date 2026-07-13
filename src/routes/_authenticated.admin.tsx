@@ -47,7 +47,7 @@ function AdminPage() {
   const [category, setCategory] = useState<string>("living_room");
   const [type, setType] = useState<"auction" | "free">("auction");
   const [description, setDescription] = useState("");
-  const [startingPrice, setStartingPrice] = useState("");
+  
   const [genLoading, setGenLoading] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
