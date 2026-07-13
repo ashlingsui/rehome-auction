@@ -110,7 +110,20 @@ function ItemDetail() {
     }
   }
 
+  async function onDelete() {
+    if (!confirm(`Delete "${item.title}"? This can't be undone.`)) return;
+    try {
+      await deleteItemFn({ data: { id: item.id } });
+      toast.success("Deleted.");
+      qc.invalidateQueries({ queryKey: ["items"] });
+      navigate({ to: "/feed" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't delete.");
+    }
+  }
+
   const claimed = item.status === "claimed";
+
 
   return (
     <div className="min-h-screen bg-background pb-32">
