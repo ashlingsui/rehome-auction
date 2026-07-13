@@ -234,10 +234,11 @@ function ItemDetail() {
                       type="number"
                       inputMode="decimal"
                       min={item.starting_price ?? 1}
-                      max={200}
+                      max={sale?.max_bid_amount ?? 200}
                       step="1"
-                      placeholder="Your blind bid (max ¥200)"
+                      placeholder={`Your blind bid (max ¥${sale?.max_bid_amount ?? 200})`}
                       className="h-14 rounded-2xl border-border bg-background pl-9 text-base"
+
                     />
                   </div>
                   <Button
