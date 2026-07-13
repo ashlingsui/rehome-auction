@@ -31,8 +31,15 @@ export const Route = createFileRoute("/_authenticated/feed")({
 function FeedPage() {
   const { data: items } = useSuspenseQuery(itemsQuery);
   const { data: admin } = useQuery(adminQuery);
+  const { data: sale } = useQuery(saleQuery);
   const [cat, setCat] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"all" | "auction" | "free">("all");
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const expired = !!sale && new Date(sale.auction_ends_at).getTime() <= nowMs;
   const navigate = useNavigate();
 
   // Live: refetch on item/bid changes
