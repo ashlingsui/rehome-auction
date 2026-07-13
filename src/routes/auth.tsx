@@ -5,8 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { isValidPhone, phoneToSyntheticEmail } from "@/lib/phone";
-import { claimAccount } from "@/lib/auth.functions";
+import { claimAccount, nameToSyntheticEmail } from "@/lib/auth.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -17,7 +16,6 @@ function AuthPage() {
   const navigate = useNavigate();
   const claim = useServerFn(claimAccount);
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
   const [passcode, setPasscode] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,11 +28,14 @@ function AuthPage() {
   async function handleEnter(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return toast.error("Tell me your name!");
-    if (!isValidPhone(phone)) return toast.error("That phone number looks off.");
     if (passcode.trim().length < 4)
       return toast.error("Pick a passcode of at least 4 characters.");
     setLoading(true);
-    const email = phoneToSyntheticEmail(phone);
+    const email = nameToSyntheticEmail(name.trim());
+    if (email === "user_@movingsale.local") {
+      setLoading(false);
+      return toast.error("Please use a name with letters or numbers.");
+    }
 
     // 1) Try normal sign-in with the entered passcode.
     const signIn = await supabase.auth.signInWithPassword({
@@ -55,12 +56,12 @@ function AuthPage() {
     //    their passcode for the first time. Let the server decide.
     try {
       const result = await claim({
-        data: { name: name.trim(), phone, passcode },
+        data: { name: name.trim(), passcode },
       });
       if (result.status === "exists") {
         setLoading(false);
         toast.error(
-          "Wrong passcode. If you forgot it, ask the host to reset your account.",
+          "Wrong passcode, or that name is taken. Try a slightly different name, or ask the host to reset your account.",
         );
         return;
       }
@@ -116,20 +117,9 @@ function AuthPage() {
               autoComplete="given-name"
               className="h-12 rounded-2xl border-border bg-background text-base"
             />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="phone" className="text-xs uppercase tracking-wider text-muted-foreground">
-              Phone number
-            </Label>
-            <Input
-              id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="(555) 123 4567"
-              inputMode="tel"
-              autoComplete="tel"
-              className="h-12 rounded-2xl border-border bg-background text-base"
-            />
+            <p className="text-xs text-muted-foreground">
+              If someone else already used your first name, add a last initial.
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="passcode" className="text-xs uppercase tracking-wider text-muted-foreground">

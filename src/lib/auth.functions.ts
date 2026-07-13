@@ -2,18 +2,22 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const PHONE = z
-  .string()
-  .min(7)
-  .max(20)
-  .transform((s) => s.replace(/\D/g, ""))
-  .refine((s) => s.length >= 7 && s.length <= 15, "Invalid phone");
-
 const PASSCODE = z.string().min(4).max(64);
 const NAME = z.string().min(1).max(80);
 
-function syntheticEmail(digits: string) {
-  return `user${digits}@movingsale.local`;
+// Normalize a display name into a compact handle we can turn into a stable
+// synthetic email. Lowercase, alphanumerics only.
+function nameToHandle(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 40);
+}
+
+function syntheticEmail(handle: string) {
+  return `user_${handle}@movingsale.local`;
 }
 
 // Public: create a brand-new account OR claim an existing legacy account by
@@ -21,17 +25,19 @@ function syntheticEmail(digits: string) {
 // for an account that already has one — those must sign in normally.
 export const claimAccount = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({ name: NAME, phone: PHONE, passcode: PASSCODE }).parse(data),
+    z.object({ name: NAME, passcode: PASSCODE }).parse(data),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const email = syntheticEmail(data.phone);
+    const handle = nameToHandle(data.name);
+    if (!handle) throw new Error("Please use a name with letters or numbers.");
+    const email = syntheticEmail(handle);
 
-    // Look up existing profile by phone (phone is the stable identity here).
+    // Look up an existing profile by the normalized name handle stored in phone.
     const { data: existingProfile } = await supabaseAdmin
       .from("profiles")
       .select("id, passcode_set")
-      .eq("phone", data.phone)
+      .eq("phone", handle)
       .maybeSingle();
 
     if (existingProfile) {
@@ -57,10 +63,9 @@ export const claimAccount = createServerFn({ method: "POST" })
       email,
       password: data.passcode,
       email_confirm: true,
-      user_metadata: { name: data.name, phone: data.phone },
+      user_metadata: { name: data.name, phone: handle },
     });
     if (createErr) {
-      // Possible race: user was created concurrently. Surface as "exists".
       if (createErr.message?.toLowerCase().includes("already")) {
         return { status: "exists" as const };
       }
@@ -70,14 +75,12 @@ export const claimAccount = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from("profiles")
       .update({ passcode_set: true, name: data.name })
-      .eq("phone", data.phone);
+      .eq("phone", handle);
     return { status: "created" as const };
   });
 
 // Admin-only: invalidate every legacy phone-derived password for users who
-// haven't claimed a personal passcode yet. Rotates them to a long random
-// value so the old derivation is dead. Users re-enter with a new passcode
-// via claimAccount.
+// haven't claimed a personal passcode yet.
 export const rotateLegacyPasswords = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -97,8 +100,7 @@ export const rotateLegacyPasswords = createServerFn({ method: "POST" })
 
     let rotated = 0;
     for (const row of legacy ?? []) {
-      const random =
-        crypto.randomUUID() + "-" + crypto.randomUUID();
+      const random = crypto.randomUUID() + "-" + crypto.randomUUID();
       const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(
         row.id,
         { password: random },
@@ -108,8 +110,7 @@ export const rotateLegacyPasswords = createServerFn({ method: "POST" })
     return { rotated, total: legacy?.length ?? 0 };
   });
 
-// Admin-only: reset one user's passcode-set flag so they can re-claim with a
-// new passcode (e.g. a friend forgot theirs).
+// Admin-only: reset one user's passcode so they can re-claim it.
 export const adminResetPasscode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
@@ -137,3 +138,8 @@ export const adminResetPasscode = createServerFn({ method: "POST" })
     if (profErr) throw new Error(profErr.message);
     return { ok: true };
   });
+
+// Helper exported for the client to build the synthetic email for sign-in.
+export function nameToSyntheticEmail(name: string) {
+  return syntheticEmail(nameToHandle(name));
+}
