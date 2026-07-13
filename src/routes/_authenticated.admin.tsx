@@ -31,6 +31,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 function AdminPage() {
+  const location = useLocation();
+  const isChildRoute = location.pathname !== "/admin" && location.pathname !== "/admin/";
   const { data: adminCheck, isLoading } = useQuery(adminQuery);
   const navigate = useNavigate();
 
