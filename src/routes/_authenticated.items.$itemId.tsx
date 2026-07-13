@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getItem, placeBid, claimItem } from "@/lib/items.functions";
+import { saleQuery } from "@/components/CountdownChip";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
