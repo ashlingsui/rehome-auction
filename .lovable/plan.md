@@ -1,44 +1,32 @@
-## Goal
+Three small, front-end-only changes.
 
-Give each signed-in user a personal "My Stuff" view where they can see everything they've claimed (free items) and everything they've bid on (auction items), plus the ability to unclaim a free item so someone else can grab it. Auction bids remain final — no cancel.
+## 1) Admin menu on the feed
 
-## New route
+In `src/routes/_authenticated.feed.tsx`, replace the single "Add" pill (visible to admins) with a small **Admin** dropdown menu (shadcn `DropdownMenu`) shown only when `admin?.isAdmin`. Items:
 
-`src/routes/_authenticated.my.tsx` → `/my`
+- **Add item** → `/admin`
+- **Results** → `/admin/results`
 
-Two sections:
-- **Claimed** — free items where `claimed_by = me`. Each row has an "Unclaim" button (with confirm).
-- **Bids** — auction items where I have a bid, showing the amount I bid. No cancel button; small note "Bids are final".
+The trigger is a compact pill labelled "Admin" with a chevron, matching the existing header style. Non-admins see no change.
 
-Empty state when both are empty: "Nothing yet — head back to the sale."
+## 2) Why the Edit button appeared missing
 
-Header link from `/feed` (a small bag/cart icon next to the admin/sign-out buttons) pointing to `/my`.
+The item detail page already renders an **Edit** pill (top-right of the sticky header) when `isAdmin()` returns true. The reason it looked missing: the global **CountdownChip** is `position: fixed` at `top-4 right-4` on `/items/*` routes and sits directly on top of the Edit pill, hiding it — especially at phone widths. Fixing #3 below uncovers the Edit button. No logic change is needed for #2.
 
-## Server functions (`src/lib/items.functions.ts`)
+## 3) Reposition the countdown to the top of the page
 
-- `listMyStuff` — auth-required. Returns `{ claimed: FeedItem[]; bids: (FeedItem & { my_bid_amount: number })[] }`. Runs two queries scoped to `userId`, joins with `items`, signs photos.
-- `unclaimItem` — auth-required. Calls a new SECURITY DEFINER SQL function `unclaim_free_item(_item_id)` that:
-  - checks the sale hasn't closed
-  - verifies the row is `type='free'`, `status='claimed'`, `claimed_by = auth.uid()`
-  - sets `status='available'`, `claimed_by=null`
-  - raises if any check fails
+Convert the countdown from a floating fixed chip into an inline banner that sits at the very top of the page on every route.
 
-Auction bids: no server function to cancel. The UI does not offer it.
+- `src/components/CountdownChip.tsx`: remove all `fixed` / `bottom-*` / `top-*` positioning and `useLocation` branching. Render a full-width, centered strip:
+  - Slim bar, `border-b border-border/70 bg-background/90 backdrop-blur`, one line: `Closes in · 2d 04h 12m` (or `Sale · Closed`).
+  - Semantic HTML, `aria-live="polite"` preserved.
+- `src/routes/__root.tsx` (or wherever `CountdownChip` is currently mounted): keep it mounted once, but place it as the first child of the app shell so it appears above every page's header.
+- Adjust the feed header's `sticky top-0` and the item-detail sticky back-bar so they sit *below* the countdown banner (either drop `sticky` from these on small screens or let the banner scroll away — recommend: banner is a normal (non-sticky) top strip so it doesn't compete with the sticky headers). This removes overlap with the Edit pill and the bottom bid bar on mobile.
 
-## Migration
+## Files touched
 
-Add function `public.unclaim_free_item(_item_id uuid)` mirroring the existing `claim_free_item` shape (SECURITY DEFINER, `search_path=public`, respects sale end time, only lets the current claimant release their own item). Existing RLS on `items` already blocks direct client updates, so the SECURITY DEFINER function is the only path.
+- `src/routes/_authenticated.feed.tsx` — replace Add pill with Admin dropdown (Add item, Results).
+- `src/components/CountdownChip.tsx` — inline top banner instead of fixed chip.
+- `src/routes/__root.tsx` — mount `CountdownChip` at the top of the shell (if not already there in a way that supports this).
 
-## UI details
-
-- Card layout matches the feed's square thumbnail style so it feels consistent.
-- Each card shows title, thumbnail, category chip, and either "Claimed" badge + Unclaim button, or "You bid ¥X" badge.
-- Unclaim triggers a `useMutation`, invalidates `["items"]`, `["item", id]`, and `["my-stuff"]`.
-- Live refresh: subscribe to `items` + `bids` changes and invalidate `["my-stuff"]`.
-- After the sale ends (countdown expired), hide the Unclaim button — final state is locked.
-
-## Technical notes
-
-- Query key: `["my-stuff"]`. Loader primes with `ensureQueryData`, component uses `useSuspenseQuery`.
-- Reuse `signPhotos` helper already in `items.functions.ts`.
-- Add `Bag` / `ShoppingBag` lucide icon import on the feed header.
+No database, server-function, or business-logic changes.
