@@ -47,7 +47,7 @@ function AdminPage() {
   const [category, setCategory] = useState<string>("living_room");
   const [type, setType] = useState<"auction" | "free">("auction");
   const [description, setDescription] = useState("");
-  const [startingPrice, setStartingPrice] = useState("");
+  
   const [genLoading, setGenLoading] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
@@ -154,8 +154,6 @@ function AdminPage() {
     if (!title.trim()) return toast.error("Add a title.");
     setPublishing(true);
     try {
-      const sp =
-        type === "auction" && startingPrice ? Number(startingPrice) : null;
       await createItemFn({
         data: {
           title: title.trim(),
@@ -163,7 +161,7 @@ function AdminPage() {
           category: category as never,
           type,
           description: description.trim() || null,
-          starting_price: sp && sp > 0 ? sp : null,
+          starting_price: null,
         },
       });
       toast.success("Published!");
@@ -319,25 +317,6 @@ function AdminPage() {
             </div>
           </div>
 
-          {type === "auction" && (
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="price"
-                className="text-xs uppercase tracking-wider text-muted-foreground"
-              >
-                Starting bid (optional)
-              </Label>
-              <Input
-                id="price"
-                value={startingPrice}
-                onChange={(e) => setStartingPrice(e.target.value)}
-                type="number"
-                inputMode="decimal"
-                placeholder="20"
-                className="h-12 rounded-2xl border-border bg-background text-base"
-              />
-            </div>
-          )}
 
           {/* Description w/ AI */}
           <div>
