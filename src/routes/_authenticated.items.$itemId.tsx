@@ -137,14 +137,23 @@ function ItemDetail() {
           Back to sale
         </button>
         {adminCheck?.isAdmin && (
-          <Link
-            to="/admin/items/$itemId/edit"
-            params={{ itemId }}
-            className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-background/90 px-3 text-sm font-medium text-foreground shadow-sm backdrop-blur hover:bg-muted"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            Edit
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/admin/items/$itemId/edit"
+              params={{ itemId }}
+              className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-background/90 px-3 text-sm font-medium text-foreground shadow-sm backdrop-blur hover:bg-muted"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit
+            </Link>
+            <button
+              onClick={onDelete}
+              className="inline-flex h-10 items-center gap-1 rounded-full border border-destructive/30 bg-background/90 px-3 text-sm font-medium text-destructive shadow-sm backdrop-blur hover:bg-destructive/10"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete
+            </button>
+          </div>
         )}
       </div>
 
