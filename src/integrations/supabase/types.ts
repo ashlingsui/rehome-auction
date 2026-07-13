@@ -14,16 +14,173 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bids: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      items: {
+        Row: {
+          category: Database["public"]["Enums"]["item_category"]
+          claimed_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          photo_url: string
+          starting_price: number | null
+          status: Database["public"]["Enums"]["item_status"]
+          title: string
+          type: Database["public"]["Enums"]["item_type"]
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["item_category"]
+          claimed_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          photo_url: string
+          starting_price?: number | null
+          status?: Database["public"]["Enums"]["item_status"]
+          title: string
+          type: Database["public"]["Enums"]["item_type"]
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["item_category"]
+          claimed_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          photo_url?: string
+          starting_price?: number | null
+          status?: Database["public"]["Enums"]["item_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["item_type"]
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          phone: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name: string
+          phone: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_free_item: {
+        Args: { _item_id: string }
+        Returns: {
+          category: Database["public"]["Enums"]["item_category"]
+          claimed_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          photo_url: string
+          starting_price: number | null
+          status: Database["public"]["Enums"]["item_status"]
+          title: string
+          type: Database["public"]["Enums"]["item_type"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_all_bid_counts: {
+        Args: never
+        Returns: {
+          bid_count: number
+          item_id: string
+        }[]
+      }
+      get_bid_count: { Args: { _item_id: string }; Returns: number }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      item_category:
+        | "bedroom"
+        | "kitchen"
+        | "living_room"
+        | "bathroom"
+        | "decor"
+        | "wardrobe"
+        | "other"
+      item_status: "available" | "claimed"
+      item_type: "auction" | "free"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +307,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      item_category: [
+        "bedroom",
+        "kitchen",
+        "living_room",
+        "bathroom",
+        "decor",
+        "wardrobe",
+        "other",
+      ],
+      item_status: ["available", "claimed"],
+      item_type: ["auction", "free"],
+    },
   },
 } as const
