@@ -160,7 +160,7 @@ function FeedPage() {
           <div className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             A little note 💌
           </div>
-          This is a friends & family thing, so please keep bids gentle — <span className="font-medium">max ¥200 per item</span>. Every yen bid goes straight into the wine fund for our send-off, so bid what feels fair, not what feels competitive. 🍷</div>
+          This is a friends & family thing, so please keep bids gentle. Every bid goes straight into Ashling's wine fund — do not encourage her drinking too much — so bid what feels fair, not what feels competitive. 🍷</div>
 
         {filtered.length === 0 ? (
           <EmptyState admin={!!admin?.isAdmin} />
