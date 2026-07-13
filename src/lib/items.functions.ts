@@ -160,6 +160,14 @@ export const placeBid = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const { data: settings } = await supabase
+      .from("sale_settings")
+      .select("auction_ends_at")
+      .eq("id", true)
+      .maybeSingle();
+    if (settings && new Date(settings.auction_ends_at).getTime() <= Date.now()) {
+      throw new Error("The sale has closed.");
+    }
     const { error } = await supabase
       .from("bids")
       .insert({ item_id: data.item_id, user_id: userId, amount: data.amount });
