@@ -14,22 +14,6 @@ const CATEGORY = z.enum([
   "other",
 ]);
 
-async function assertAdmin(
-  supabase: {
-    rpc: (
-      fn: string,
-      args: Record<string, unknown>,
-    ) => Promise<{ data: unknown; error: unknown }>;
-  },
-  userId: string,
-) {
-  const { data } = await supabase.rpc("has_role", {
-    _user_id: userId,
-    _role: "admin",
-  });
-  if (!data) throw new Error("Admins only.");
-}
-
 export const createItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
@@ -46,7 +30,12 @@ export const createItem = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    await assertAdmin(supabase, userId);
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Admins only.");
+
     const { data: item, error } = await supabase
       .from("items")
       .insert({
@@ -68,7 +57,11 @@ export const deleteItem = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    await assertAdmin(supabase, userId);
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Admins only.");
     const { error } = await supabase.from("items").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -86,9 +79,12 @@ export const generateDescription = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    await assertAdmin(supabase, userId);
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Admins only.");
 
-    // Get a signed URL for the photo (private bucket)
     const { data: signed, error: signErr } = await supabase.storage
       .from("item-photos")
       .createSignedUrl(data.photo_path, 60 * 5);
@@ -121,12 +117,17 @@ export const generateDescription = createServerFn({ method: "POST" })
     return { description: result.text.trim() };
   });
 
-export const listMyBids = createServerFn({ method: "GET" })
+export const listItemBids = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ item_id: z.string().uuid() }).parse(data))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    await assertAdmin(supabase, userId);
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Admins only.");
+
     const { data: bids, error } = await supabase
       .from("bids")
       .select("id, amount, created_at, user_id")
@@ -135,7 +136,7 @@ export const listMyBids = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     const userIds = Array.from(new Set((bids ?? []).map((b) => b.user_id)));
-    let nameMap = new Map<string, { name: string; phone: string }>();
+    const nameMap = new Map<string, { name: string; phone: string }>();
     if (userIds.length > 0) {
       const { data: profiles } = await supabase
         .from("profiles")
@@ -153,5 +154,14 @@ export const listMyBids = createServerFn({ method: "GET" })
     }));
   });
 
-// Silence unused import in TS strict mode when userId not read.
-void userId;
+export const getUploadPath = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z.object({ ext: z.string().max(6) }).parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    const { userId } = context;
+    // Photos live at `${userId}/${uuid}.${ext}` so admin can only overwrite own.
+    const path = `${userId}/${crypto.randomUUID()}.${data.ext.replace(/^\./, "")}`;
+    return { path };
+  });
