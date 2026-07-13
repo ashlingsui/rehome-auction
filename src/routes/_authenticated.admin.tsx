@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, ImagePlus, Sparkles, Loader2, Clock } from "lucide-react";
+import { ArrowLeft, ImagePlus, Sparkles, Loader2, Clock, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const adminQuery = queryOptions({
