@@ -105,6 +105,13 @@ function FeedPage() {
                 Add
               </Link>
             )}
+            <Link
+              to="/my"
+              aria-label="My stuff"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:bg-muted"
+            >
+              <ShoppingBag className="h-4 w-4" />
+            </Link>
             <button
               onClick={signOut}
               aria-label="Sign out"
@@ -114,6 +121,7 @@ function FeedPage() {
             </button>
           </div>
         </div>
+
 
         {/* Type toggle */}
         <div className="mx-auto flex max-w-4xl gap-2 px-5 pb-3">
