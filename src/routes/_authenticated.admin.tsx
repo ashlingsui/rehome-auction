@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery, queryOptions } from "@tanstack/react-query";
+import { useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createItem,
@@ -9,13 +9,15 @@ import {
   getUploadPath,
 } from "@/lib/admin.functions";
 import { isAdmin } from "@/lib/items.functions";
+import { updateSaleEndsAt } from "@/lib/sale.functions";
+import { saleQuery } from "@/components/CountdownChip";
 import { CATEGORIES } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, ImagePlus, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, ImagePlus, Sparkles, Loader2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const adminQuery = queryOptions({
