@@ -182,7 +182,7 @@ function ItemDetail() {
         {item.type === "auction" && item.starting_price && !claimed && (
           <div className="mt-4 text-sm text-muted-foreground">
             Bidding opens at{" "}
-            <span className="font-medium text-foreground">¥{item.starting_price}</span> · max ¥{sale?.max_bid_amount ?? 200}.
+            <span className="font-medium text-foreground">¥{item.starting_price}</span>.
           </div>
         )}
 
