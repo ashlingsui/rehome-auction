@@ -156,6 +156,12 @@ function FeedPage() {
 
       {/* Grid */}
       <main className="mx-auto max-w-4xl px-5 pt-6">
+        <div className="mb-5 rounded-3xl border border-border bg-lilac/40 px-5 py-4 text-sm leading-relaxed text-foreground">
+          <div className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+            A little note 💌
+          </div>
+          This is a friends & family thing, so please keep bids gentle — <span className="font-medium">max ¥200 per item</span>. Every yen bid goes straight into the wine fund for our send-off, so bid what feels fair, not what feels competitive. 🍷</div>
+
         {filtered.length === 0 ? (
           <EmptyState admin={!!admin?.isAdmin} />
         ) : (
