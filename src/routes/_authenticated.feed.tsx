@@ -3,9 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { listItems, isAdmin, type FeedItem } from "@/lib/items.functions";
+import { saleQuery } from "@/components/CountdownChip";
 import { CATEGORIES, categoryLabel, categoryToken } from "@/lib/categories";
 import { cn } from "@/lib/utils";
-import { Sparkles, Plus, LogOut } from "lucide-react";
+import { Sparkles, Plus, LogOut, Lock } from "lucide-react";
 
 const itemsQuery = queryOptions({
   queryKey: ["items"],
