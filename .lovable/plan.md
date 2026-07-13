@@ -1,49 +1,22 @@
-## Admin Auction Results Dashboard
+## Surface the Admin entry point
 
-A private results view at `/admin/results`, linked from `/admin` (admin-only, gated by the existing `has_role('admin')` check — same pattern as the current admin page). Same off-white editorial aesthetic.
+### Diagnosis
+The feed header already renders an **Admin** link in the top-right (and again in the empty state) whenever the signed-in user has the `admin` role — see `src/routes/_authenticated.feed.tsx` (`{admin?.isAdmin && <Link to="/admin">…}`). Right now the database has:
 
-### Data (new server fn in `src/lib/admin.functions.ts`)
+- **Camille** — admin
+- **Ashling** — user (no admin role)
 
-`getAuctionResults` — admin-only, returns three lists:
+If you're signed in as Ashling, the link is intentionally hidden. Nothing to build UI-side — the entry point exists.
 
-1. **Auction winners** — for every auction item, the highest bid (if any), joined with the bidder's profile:
-   `{ item_id, title, photo_signed_url, status: 'active' | 'closed', winning_amount, winner_name, winner_phone, bid_count }`
-   - "closed" = `now() >= sale_settings.auction_ends_at`; "active" otherwise (same flag for all items — global timer).
-   - Items with zero bids are included with `winning_amount: null` so I can see gaps.
-2. **Claimed free items** — every `type='free' AND status='claimed'` row joined with claimer profile:
-   `{ item_id, title, photo_signed_url, claimer_name, claimer_phone }`.
-3. `sale_closed: boolean` for the header copy.
+### Fix
+Grant Ashling the `admin` role via a one-row insert into `user_roles`. After that, the Admin link will show in the feed header on next load, and `/admin` + `/admin/results` will be reachable.
 
-Implementation reuses `has_role` admin check + signed photo URLs (1h). Bidder/claimer names+phones read directly from `profiles` (admin bypasses via server fn; RLS already lets any authenticated user read profiles).
-
-### UI — `src/routes/_authenticated.admin.results.tsx`
-
-- Back link → `/admin`.
-- Header: "Results" title, small subtitle showing "Sale closes in…" or "Sale closed".
-- Three pill tabs (matches existing pill styling in admin.tsx category chips): **Active auctions · Closed auctions · Claimed free items**.
-  - Before expiry: default to "Active auctions"; "Closed auctions" tab is present but shows an empty state "Results appear when the countdown ends".
-  - After expiry: default to "Closed auctions".
-- Auction rows (editorial list, not a table): 64px rounded thumbnail · title + bid count caption · winner name + phone · price in Fraunces italic on the right. Rows separated by hairline borders on the off-white card.
-- "No bids yet" state for items with zero bids in the active/closed lists.
-- Free items rows: thumbnail · title · claimer name · phone (tappable `tel:` link).
-- TanStack Query 30s stale for active tab; realtime not needed (auto-refetch on tab focus).
-
-### Admin page link
-
-Add a small "View results →" link in `/admin` near the "Sale timer" card so I can jump in without knowing the URL.
-
-### Security
-
-- Route uses `ssr: false` and the same `isAdmin` client-side check + redirect fallback that `/admin` already uses. The server fn re-checks `has_role('admin')`, so a non-admin who guesses the URL sees the "Just for the host" fallback and can't fetch data.
-- No new tables, no migration.
-
-### Files
-
-- New: `src/routes/_authenticated.admin.results.tsx`
-- Edit: `src/lib/admin.functions.ts` (add `getAuctionResults`), `src/routes/_authenticated.admin.tsx` (add link)
+```sql
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('8b926d18-0318-4d14-8db2-7a61c7de342b', 'admin')
+ON CONFLICT DO NOTHING;
+```
 
 ### Out of scope
-
-- Passcode gate (admin role is already the gate).
-- Exporting CSV / marking winners as notified.
-- Per-user bid history.
+- No new UI, no new route, no additional nav placement — the existing header link is the intended access point for a private friends-only app.
+- If you'd rather this be Camille and not Ashling, say the word and I'll promote the other account instead (or both).
