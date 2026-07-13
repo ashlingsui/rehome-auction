@@ -317,25 +317,6 @@ function AdminPage() {
             </div>
           </div>
 
-          {type === "auction" && (
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="price"
-                className="text-xs uppercase tracking-wider text-muted-foreground"
-              >
-                Starting bid (optional)
-              </Label>
-              <Input
-                id="price"
-                value={startingPrice}
-                onChange={(e) => setStartingPrice(e.target.value)}
-                type="number"
-                inputMode="decimal"
-                placeholder="20"
-                className="h-12 rounded-2xl border-border bg-background text-base"
-              />
-            </div>
-          )}
 
           {/* Description w/ AI */}
           <div>
