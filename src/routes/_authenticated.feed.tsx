@@ -4,6 +4,8 @@ import { useQuery, useSuspenseQuery, queryOptions } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client";
 import { listItems, isAdmin, type FeedItem } from "@/lib/items.functions";
 import { saleQuery } from "@/components/CountdownChip";
+import { OnlinePresence } from "@/components/OnlinePresence";
+import { NotStartedOverlay } from "@/components/NotStartedOverlay";
 import { CATEGORIES, categoryLabel, categoryToken } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { Sparkles, LogOut, Lock, ShoppingBag, ChevronDown, Plus, BarChart3, ShieldCheck } from "lucide-react";
