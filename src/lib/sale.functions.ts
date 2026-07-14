@@ -65,8 +65,10 @@ export const updateSaleStartsAt = createServerFn({ method: "POST" })
     if (!isAdmin) throw new Error("Only admins can change the sale timer.");
     const { error } = await supabase
       .from("sale_settings")
-      // @ts-expect-error - column added in migration; types regenerate later
-      .update({ auction_starts_at: data.starts_at, updated_at: new Date().toISOString() })
+      .update({
+        auction_starts_at: data.starts_at,
+        updated_at: new Date().toISOString(),
+      } as never)
       .eq("id", true);
     if (error) throw new Error(error.message);
     return { ok: true };
