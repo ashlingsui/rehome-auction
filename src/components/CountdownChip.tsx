@@ -49,9 +49,20 @@ export function CountdownChip() {
 
   if (!data) return null;
 
+  const startsAt = new Date(data.auction_starts_at).getTime();
   const endsAt = new Date(data.auction_ends_at).getTime();
-  const remaining = endsAt - now;
-  const expired = remaining <= 0;
+  const notStarted = now < startsAt;
+  const expired = now >= endsAt;
+
+  let label = "Closes in";
+  let value = formatRemaining(endsAt - now);
+  if (notStarted) {
+    label = "Opens in";
+    value = formatRemaining(startsAt - now);
+  } else if (expired) {
+    label = "Sale";
+    value = "Closed";
+  }
 
   return (
     <div
@@ -60,15 +71,15 @@ export function CountdownChip() {
     >
       <div className="mx-auto flex max-w-4xl items-center justify-center gap-2 px-5 py-2 text-center">
         <span className="text-[9px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          {expired ? "Sale" : "Closes in"}
+          {label}
         </span>
         <span
           className={cn(
-            "font-display italic leading-none",
-            expired ? "text-base text-muted-foreground" : "text-base text-foreground",
+            "font-display italic leading-none text-base",
+            expired ? "text-muted-foreground" : "text-foreground",
           )}
         >
-          {expired ? "Closed" : formatRemaining(remaining)}
+          {value}
         </span>
       </div>
     </div>
