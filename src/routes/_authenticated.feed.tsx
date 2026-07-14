@@ -4,6 +4,8 @@ import { useQuery, useSuspenseQuery, queryOptions } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client";
 import { listItems, isAdmin, type FeedItem } from "@/lib/items.functions";
 import { saleQuery } from "@/components/CountdownChip";
+import { OnlinePresence } from "@/components/OnlinePresence";
+import { NotStartedOverlay } from "@/components/NotStartedOverlay";
 import { CATEGORIES, categoryLabel, categoryToken } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { Sparkles, LogOut, Lock, ShoppingBag, ChevronDown, Plus, BarChart3, ShieldCheck } from "lucide-react";
@@ -111,6 +113,7 @@ function FeedPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      <NotStartedOverlay adminBypass={!!admin?.isAdmin} />
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-lg">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-5 py-4">
@@ -128,9 +131,11 @@ function FeedPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <OnlinePresence />
             {admin?.isAdmin && (
               <AdminMenu unlocked={adminUnlocked} setUnlocked={setAdminUnlocked} />
             )}
+
 
 
             <Link

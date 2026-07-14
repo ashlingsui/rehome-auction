@@ -10,7 +10,7 @@ import {
 } from "@/lib/admin.functions";
 import { rotateLegacyPasswords } from "@/lib/auth.functions";
 import { isAdmin } from "@/lib/items.functions";
-import { updateSaleEndsAt, updateMaxBidAmount } from "@/lib/sale.functions";
+import { updateSaleEndsAt, updateSaleStartsAt, updateMaxBidAmount } from "@/lib/sale.functions";
 import { saleQuery } from "@/components/CountdownChip";
 import { CATEGORIES } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
@@ -394,14 +394,19 @@ function SaleTimerCard() {
   const { data: sale } = useQuery(saleQuery);
   const qc = useQueryClient();
   const updateFn = useServerFn(updateSaleEndsAt);
+  const updateStartFn = useServerFn(updateSaleStartsAt);
   const updateMaxFn = useServerFn(updateMaxBidAmount);
   const [value, setValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [startValue, setStartValue] = useState<string>("");
+  const [savingStart, setSavingStart] = useState(false);
   const [maxBid, setMaxBid] = useState<string>("");
   const [savingMax, setSavingMax] = useState(false);
 
   const current = sale ? toLocalInput(sale.auction_ends_at) : "";
   const editing = value || current;
+  const currentStart = sale ? toLocalInput(sale.auction_starts_at) : "";
+  const editingStart = startValue || currentStart;
   const currentMax = sale ? String(sale.max_bid_amount) : "";
   const editingMax = maxBid || currentMax;
 
@@ -413,11 +418,27 @@ function SaleTimerCard() {
       await updateFn({ data: { ends_at: iso } });
       await qc.invalidateQueries({ queryKey: ["sale-settings"] });
       setValue("");
-      toast.success("Sale timer updated.");
+      toast.success("End time updated.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't update timer.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function onSaveStart() {
+    if (!startValue) return;
+    setSavingStart(true);
+    try {
+      const iso = new Date(startValue).toISOString();
+      await updateStartFn({ data: { starts_at: iso } });
+      await qc.invalidateQueries({ queryKey: ["sale-settings"] });
+      setStartValue("");
+      toast.success("Start time updated.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't update start time.");
+    } finally {
+      setSavingStart(false);
     }
   }
 
@@ -442,28 +463,60 @@ function SaleTimerCard() {
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4 text-muted-foreground" />
         <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Sale timer
+          Sale window
         </div>
       </div>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Everything locks automatically when the countdown hits zero.
-      </p>
-      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <Input
-          type="datetime-local"
-          value={editing}
-          onChange={(e) => setValue(e.target.value)}
-          className="h-12 rounded-2xl border-border bg-background text-base"
-        />
-        <Button
-          type="button"
-          onClick={onSave}
-          disabled={saving || !value || value === current}
-          className="h-12 rounded-2xl bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
-        >
-          {saving ? "Saving…" : "Save"}
-        </Button>
+
+      <div className="mt-4">
+        <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          Starts at
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Bidding and claiming stay locked until this moment.
+        </p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <Input
+            type="datetime-local"
+            value={editingStart}
+            onChange={(e) => setStartValue(e.target.value)}
+            className="h-12 rounded-2xl border-border bg-background text-base"
+          />
+          <Button
+            type="button"
+            onClick={onSaveStart}
+            disabled={savingStart || !startValue || startValue === currentStart}
+            className="h-12 rounded-2xl bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+          >
+            {savingStart ? "Saving…" : "Save"}
+          </Button>
+        </div>
       </div>
+
+      <div className="mt-5 border-t border-border pt-4">
+        <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          Ends at
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Everything locks automatically when the countdown hits zero.
+        </p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <Input
+            type="datetime-local"
+            value={editing}
+            onChange={(e) => setValue(e.target.value)}
+            className="h-12 rounded-2xl border-border bg-background text-base"
+          />
+          <Button
+            type="button"
+            onClick={onSave}
+            disabled={saving || !value || value === current}
+            className="h-12 rounded-2xl bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+          >
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </div>
+
 
       <div className="mt-5 border-t border-border pt-4">
         <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">

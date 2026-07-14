@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getItem, placeBid, claimItem, isAdmin } from "@/lib/items.functions";
 import { deleteItem } from "@/lib/admin.functions";
 import { saleQuery } from "@/components/CountdownChip";
+import { NotStartedOverlay } from "@/components/NotStartedOverlay";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +50,7 @@ function ItemDetail() {
     const id = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+  const notStarted = !!sale && new Date(sale.auction_starts_at).getTime() > nowMs;
   const expired = !!sale && new Date(sale.auction_ends_at).getTime() <= nowMs;
 
   // Live refresh on updates to this item / bids
@@ -127,6 +129,7 @@ function ItemDetail() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
+      <NotStartedOverlay adminBypass={!!adminCheck?.isAdmin} />
       {/* Sticky back */}
       <div className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-gradient-to-b from-background via-background/90 to-transparent p-4">
         <button
@@ -236,7 +239,15 @@ function ItemDetail() {
       {!claimed && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border/70 bg-background/95 px-5 py-4 backdrop-blur-lg">
           <div className="mx-auto max-w-2xl">
-            {expired ? (
+            {notStarted ? (
+              <Button
+                disabled
+                className="h-14 w-full rounded-2xl bg-muted text-base font-medium text-muted-foreground"
+              >
+                <Lock className="mr-2 h-4 w-4" />
+                Opens when the sale starts
+              </Button>
+            ) : expired ? (
               <Button
                 disabled
                 className="h-14 w-full rounded-2xl bg-muted text-base font-medium text-muted-foreground"

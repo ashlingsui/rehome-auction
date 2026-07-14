@@ -112,18 +112,21 @@ export type Database = {
       sale_settings: {
         Row: {
           auction_ends_at: string
+          auction_starts_at: string
           id: boolean
           max_bid_amount: number
           updated_at: string
         }
         Insert: {
           auction_ends_at: string
+          auction_starts_at?: string
           id?: boolean
           max_bid_amount?: number
           updated_at?: string
         }
         Update: {
           auction_ends_at?: string
+          auction_starts_at?: string
           id?: boolean
           max_bid_amount?: number
           updated_at?: string
