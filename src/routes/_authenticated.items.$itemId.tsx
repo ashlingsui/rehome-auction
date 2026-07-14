@@ -129,6 +129,7 @@ function ItemDetail() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
+      <NotStartedOverlay adminBypass={!!adminCheck?.isAdmin} />
       {/* Sticky back */}
       <div className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-gradient-to-b from-background via-background/90 to-transparent p-4">
         <button
