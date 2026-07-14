@@ -1,17 +1,17 @@
-## Grant admin role to "Ashling"
+## Goal
+Let users browse items behind the "sale opens in…" overlay before the countdown ends. Bidding/claiming stay locked (already enforced server-side and by the "Closed"/action logic).
 
-Find the profile whose name matches `Ashling` (case-insensitive) and insert an `admin` row into `public.user_roles` for that user's id, if not already present.
+## Changes
+Single file: `src/components/NotStartedOverlay.tsx`.
 
-### Steps
-1. Look up the user: `SELECT id, name FROM profiles WHERE lower(name) = 'ashling'` to confirm exactly one match. If none, stop and report back so you can share the exact name/spelling used at sign-up. If multiple, list them so you can pick.
-2. Insert the admin role:
-   ```sql
-   INSERT INTO public.user_roles (user_id, role)
-   SELECT id, 'admin'::app_role FROM public.profiles WHERE lower(name) = 'ashling'
-   ON CONFLICT (user_id, role) DO NOTHING;
-   ```
-3. Verify: re-query `user_roles` joined with `profiles` to confirm Ashling now has `admin`.
+1. Drop the full-screen dim + blur backdrop. Replace the `fixed inset-0 … bg-foreground/40 backdrop-blur-md` wrapper with a non-blocking container that only occupies the centered card area:
+   - `fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 pointer-events-none` (or top-anchored under header if preferred — will use bottom-center so it doesn't cover the sticky header).
+   - Inner card keeps `pointer-events-auto` so it stays interactive.
+2. Shrink the card slightly (max-w-sm, tighter padding) so more of the grid shows.
+3. Add a small close/"Browse anyway" button for **everyone** (not just admins) — reuses existing `dismissed` state. Admin bypass label can be removed since the button is now universal.
+4. Keep the countdown ticking; when it reaches 0 the component still returns null.
 
-### Notes
-- No code or schema changes. Data-only change via the insert tool.
-- After this, Ashling will see the Admin button on `/feed` and can unlock with passcode `080808`.
+## Result
+- Feed grid renders normally with items visible and scrollable.
+- Floating countdown card sits at the bottom center with a dismiss control.
+- No functional change to bidding/claiming gating.
