@@ -108,6 +108,25 @@ export const deleteItem = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const adminUnclaimFreeItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: isAdminRow } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (!isAdminRow) throw new Error("Admins only.");
+    const { error } = await supabase
+      .from("items")
+      .update({ status: "available", claimed_by: null })
+      .eq("id", data.id)
+      .eq("type", "free");
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const generateDescription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
