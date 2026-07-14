@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery, queryOptions } from "@tanstack/react-query";
-import { getAuctionResults } from "@/lib/admin.functions";
+import { useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getAuctionResults, adminUnclaimFreeItem } from "@/lib/admin.functions";
 import { isAdmin } from "@/lib/items.functions";
 import { formatPhoneDisplay } from "@/lib/phone";
-import { ArrowLeft, Loader2, Phone } from "lucide-react";
+import { ArrowLeft, Loader2, Phone, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const adminQuery = queryOptions({
