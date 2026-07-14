@@ -1,17 +1,6 @@
-## Goal
-Let users browse items behind the "sale opens in…" overlay before the countdown ends. Bidding/claiming stay locked (already enforced server-side and by the "Closed"/action logic).
+Update the first sentence of the "little note" section on the `/feed` page (`src/routes/_authenticated.feed.tsx`) to acknowledge that some listed items might be gifts from others, that Ashling has enjoyed them, and now wants others to share in that joy. This addresses the case where visitors might spot gifts they previously gave her.
 
-## Changes
-Single file: `src/components/NotStartedOverlay.tsx`.
+Specifically, replace the current first bullet:
+> "Ashling is clearing out her apartment and has too much stuff — she needs your help finding new homes for things."
 
-1. Drop the full-screen dim + blur backdrop. Replace the `fixed inset-0 … bg-foreground/40 backdrop-blur-md` wrapper with a non-blocking container that only occupies the centered card area:
-   - `fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 pointer-events-none` (or top-anchored under header if preferred — will use bottom-center so it doesn't cover the sticky header).
-   - Inner card keeps `pointer-events-auto` so it stays interactive.
-2. Shrink the card slightly (max-w-sm, tighter padding) so more of the grid shows.
-3. Add a small close/"Browse anyway" button for **everyone** (not just admins) — reuses existing `dismissed` state. Admin bypass label can be removed since the button is now universal.
-4. Keep the countdown ticking; when it reaches 0 the component still returns null.
-
-## Result
-- Feed grid renders normally with items visible and scrollable.
-- Floating countdown card sits at the bottom center with a dismiss control.
-- No functional change to bidding/claiming gating.
+With a new sentence that includes the gift context while keeping the rest of the note unchanged.
