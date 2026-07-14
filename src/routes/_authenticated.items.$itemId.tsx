@@ -50,6 +50,7 @@ function ItemDetail() {
     const id = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+  const notStarted = !!sale && new Date(sale.auction_starts_at).getTime() > nowMs;
   const expired = !!sale && new Date(sale.auction_ends_at).getTime() <= nowMs;
 
   // Live refresh on updates to this item / bids
