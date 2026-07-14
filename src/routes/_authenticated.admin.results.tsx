@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery, queryOptions } from "@tanstack/react-query";
-import { getAuctionResults } from "@/lib/admin.functions";
+import { useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getAuctionResults, adminUnclaimFreeItem } from "@/lib/admin.functions";
 import { isAdmin } from "@/lib/items.functions";
 import { formatPhoneDisplay } from "@/lib/phone";
-import { ArrowLeft, Loader2, Phone } from "lucide-react";
+import { ArrowLeft, Loader2, Phone, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const adminQuery = queryOptions({
@@ -228,31 +230,78 @@ function FreeList({
   return (
     <div className="divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card">
       {rows.map((r) => (
-        <div key={r.item_id} className="flex items-center gap-4 p-4">
-          <img
-            src={r.photo_signed_url}
-            alt={r.title}
-            className="h-16 w-16 flex-shrink-0 rounded-2xl object-cover"
-          />
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium text-foreground">
-              {r.title}
-            </div>
-            <div className="mt-0.5 text-xs text-muted-foreground">
-              {r.claimer_name}
-            </div>
-          </div>
-          {r.claimer_phone && (
-            <a
-              href={`tel:${r.claimer_phone}`}
-              className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
-            >
-              <Phone className="h-3 w-3" />
-              {formatPhoneDisplay(r.claimer_phone)}
-            </a>
-          )}
-        </div>
+        <FreeRow key={r.item_id} row={r} />
       ))}
     </div>
   );
 }
+
+function FreeRow({
+  row: r,
+}: {
+  row: {
+    item_id: string;
+    title: string;
+    photo_signed_url: string;
+    claimer_name: string;
+    claimer_phone: string;
+  };
+}) {
+  const qc = useQueryClient();
+  const unclaimFn = useServerFn(adminUnclaimFreeItem);
+  const [busy, setBusy] = useState(false);
+
+  async function onUnclaim() {
+    if (!confirm(`Release "${r.title}" back to available?`)) return;
+    setBusy(true);
+    try {
+      await unclaimFn({ data: { id: r.item_id } });
+      await qc.invalidateQueries({ queryKey: ["auction-results"] });
+      toast.success("Released.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't release.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-4 p-4">
+      <img
+        src={r.photo_signed_url}
+        alt={r.title}
+        className="h-16 w-16 flex-shrink-0 rounded-2xl object-cover"
+      />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium text-foreground">
+          {r.title}
+        </div>
+        <div className="mt-0.5 text-xs text-muted-foreground">
+          {r.claimer_name}
+        </div>
+      </div>
+      <div className="flex flex-shrink-0 items-center gap-2">
+        {r.claimer_phone && (
+          <a
+            href={`tel:${r.claimer_phone}`}
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+          >
+            <Phone className="h-3 w-3" />
+            {formatPhoneDisplay(r.claimer_phone)}
+          </a>
+        )}
+        <button
+          type="button"
+          onClick={onUnclaim}
+          disabled={busy}
+          title="Release back to available"
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-50"
+        >
+          {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+          Release
+        </button>
+      </div>
+    </div>
+  );
+}
+
