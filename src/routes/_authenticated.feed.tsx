@@ -113,6 +113,7 @@ function FeedPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      <NotStartedOverlay adminBypass={!!admin?.isAdmin} />
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-lg">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-5 py-4">
@@ -130,9 +131,11 @@ function FeedPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <OnlinePresence />
             {admin?.isAdmin && (
               <AdminMenu unlocked={adminUnlocked} setUnlocked={setAdminUnlocked} />
             )}
+
 
 
             <Link
