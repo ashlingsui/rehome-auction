@@ -10,7 +10,7 @@ import {
 } from "@/lib/admin.functions";
 import { rotateLegacyPasswords } from "@/lib/auth.functions";
 import { isAdmin } from "@/lib/items.functions";
-import { updateSaleEndsAt, updateMaxBidAmount } from "@/lib/sale.functions";
+import { updateSaleEndsAt, updateSaleStartsAt, updateMaxBidAmount } from "@/lib/sale.functions";
 import { saleQuery } from "@/components/CountdownChip";
 import { CATEGORIES } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
