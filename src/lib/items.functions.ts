@@ -54,7 +54,11 @@ export const listItems = createServerFn({ method: "GET" })
 
     const [{ data: items, error }, { data: bidCounts }, { data: myBids }] =
       await Promise.all([
-        supabase.from("items").select("*").order("created_at", { ascending: false }),
+        supabase
+          .from("items")
+          .select("*")
+          .order("type", { ascending: true })
+          .order("created_at", { ascending: false }),
         supabase.rpc("get_all_bid_counts"),
         supabase.from("bids").select("item_id").eq("user_id", userId),
       ]);
