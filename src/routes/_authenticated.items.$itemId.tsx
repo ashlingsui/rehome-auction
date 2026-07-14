@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getItem, placeBid, claimItem, isAdmin } from "@/lib/items.functions";
 import { deleteItem } from "@/lib/admin.functions";
 import { saleQuery } from "@/components/CountdownChip";
+import { NotStartedOverlay } from "@/components/NotStartedOverlay";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
