@@ -43,7 +43,7 @@ export function NotStartedOverlay({ adminBypass = false }: { adminBypass?: boole
   if (dismissed) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
+    <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-4">
       <div className="pointer-events-auto relative w-full max-w-sm rounded-3xl border border-border bg-background/95 p-5 text-center shadow-2xl backdrop-blur-sm">
         <button
           onClick={() => setDismissed(true)}
