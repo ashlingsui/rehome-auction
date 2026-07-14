@@ -204,7 +204,7 @@ function FeedPage() {
           <ul className="space-y-2.5 leading-relaxed">
             <li className="flex gap-2.5">
               <span className="shrink-0">🏠</span>
-              <span>Ashling is clearing out her apartment and has too much stuff — she needs your help finding new homes for things.</span>
+              <span>Ashling is clearing out her apartment and has too much stuff — including gifts from friends she's loved and now wants others to share in the joy.</span>
             </li>
             <li className="flex gap-2.5">
               <span className="shrink-0">🎁</span>
