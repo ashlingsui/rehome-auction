@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getAuctionResults, adminUnclaimFreeItem, listItemBids } from "@/lib/admin.functions";
 import { isAdmin } from "@/lib/items.functions";
 import { formatPhoneDisplay } from "@/lib/phone";
-import { ArrowLeft, ChevronDown, ChevronUp, Loader2, Phone, RotateCcw } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Eye, EyeOff, Loader2, Phone, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +31,7 @@ function ResultsPage() {
   const { data: adminCheck, isLoading: adminLoading } = useQuery(adminQuery);
   const { data, isLoading } = useQuery(resultsQuery);
   const [tab, setTab] = useState<Tab | null>(null);
+  const [hidePrices, setHidePrices] = useState(false);
 
   const saleClosed = data?.sale_closed ?? false;
   const activeTab: Tab = tab ?? (saleClosed ? "closed" : "active");
@@ -93,7 +94,7 @@ function ResultsPage() {
           </p>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap items-center gap-2">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -109,6 +110,15 @@ function ResultsPage() {
               <span className="ml-1.5 opacity-60">{t.count}</span>
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setHidePrices((v) => !v)}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted"
+            title={hidePrices ? "Show prices" : "Hide prices"}
+          >
+            {hidePrices ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            {hidePrices ? "Prices hidden" : "Hide prices"}
+          </button>
         </div>
 
         <div className="mt-6">
@@ -116,14 +126,14 @@ function ResultsPage() {
             (saleClosed ? (
               <EmptyState text="The sale has ended — check the Closed auctions tab." />
             ) : (
-              <AuctionList rows={auctions} showZero />
+              <AuctionList rows={auctions} showZero hidePrices={hidePrices} />
             ))}
 
           {activeTab === "closed" &&
             (!saleClosed ? (
               <EmptyState text="Results appear here when the countdown ends." />
             ) : (
-              <AuctionList rows={auctions} showZero />
+              <AuctionList rows={auctions} showZero hidePrices={hidePrices} />
             ))}
 
           {activeTab === "free" &&
@@ -149,6 +159,7 @@ function EmptyState({ text }: { text: string }) {
 function AuctionList({
   rows,
   showZero,
+  hidePrices,
 }: {
   rows: {
     item_id: string;
@@ -160,11 +171,12 @@ function AuctionList({
     winner_phone: string | null;
   }[];
   showZero: boolean;
+  hidePrices: boolean;
 }) {
   return (
     <div className="divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card">
       {rows.map((r) => (
-        <AuctionRow key={r.item_id} row={r} showZero={showZero} />
+        <AuctionRow key={r.item_id} row={r} showZero={showZero} hidePrices={hidePrices} />
       ))}
     </div>
   );
@@ -173,6 +185,7 @@ function AuctionList({
 function AuctionRow({
   row: r,
   showZero,
+  hidePrices,
 }: {
   row: {
     item_id: string;
@@ -184,6 +197,7 @@ function AuctionRow({
     winner_phone: string | null;
   };
   showZero: boolean;
+  hidePrices: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const listBids = useServerFn(listItemBids);
@@ -241,7 +255,7 @@ function AuctionRow({
         <div className="flex-shrink-0 text-right">
           {hasBids ? (
             <div className="font-display text-2xl italic text-foreground">
-              ¥{r.winning_amount}
+              {hidePrices ? "¥•••" : `¥${r.winning_amount}`}
             </div>
           ) : (
             <div className="text-xs text-muted-foreground">—</div>
@@ -273,7 +287,7 @@ function AuctionRow({
                       </a>
                     )}
                   </div>
-                  <div className="font-display text-base italic text-foreground">¥{b.amount}</div>
+                  <div className="font-display text-base italic text-foreground">{hidePrices ? "¥•••" : `¥${b.amount}`}</div>
                 </li>
               ))}
             </ul>
