@@ -94,7 +94,7 @@ function ResultsPage() {
           </p>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap items-center gap-2">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -110,6 +110,15 @@ function ResultsPage() {
               <span className="ml-1.5 opacity-60">{t.count}</span>
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setHidePrices((v) => !v)}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted"
+            title={hidePrices ? "Show prices" : "Hide prices"}
+          >
+            {hidePrices ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            {hidePrices ? "Prices hidden" : "Hide prices"}
+          </button>
         </div>
 
         <div className="mt-6">
