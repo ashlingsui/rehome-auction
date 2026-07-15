@@ -2,10 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getAuctionResults, adminUnclaimFreeItem } from "@/lib/admin.functions";
+import { getAuctionResults, adminUnclaimFreeItem, listItemBids } from "@/lib/admin.functions";
 import { isAdmin } from "@/lib/items.functions";
 import { formatPhoneDisplay } from "@/lib/phone";
-import { ArrowLeft, Loader2, Phone, RotateCcw } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Loader2, Phone, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -163,55 +163,125 @@ function AuctionList({
 }) {
   return (
     <div className="divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card">
-      {rows.map((r) => {
-        const hasBids = r.winning_amount !== null;
-        return (
-          <div key={r.item_id} className="flex items-center gap-4 p-4">
-            <img
-              src={r.photo_signed_url}
-              alt={r.title}
-              className="h-16 w-16 flex-shrink-0 rounded-2xl object-cover"
-            />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium text-foreground">
-                {r.title}
-              </div>
-              {hasBids ? (
-                <div className="mt-0.5 text-xs text-muted-foreground">
-                  {r.winner_name}
-                  {r.winner_phone && (
-                    <a
-                      href={`tel:${r.winner_phone}`}
-                      className="ml-2 inline-flex items-center gap-1 text-foreground/70 hover:text-foreground"
-                    >
-                      <Phone className="h-3 w-3" />
-                      {formatPhoneDisplay(r.winner_phone)}
-                    </a>
-                  )}
-                </div>
-              ) : (
-                showZero && (
-                  <div className="mt-0.5 text-xs italic text-muted-foreground">
-                    No bids yet
+      {rows.map((r) => (
+        <AuctionRow key={r.item_id} row={r} showZero={showZero} />
+      ))}
+    </div>
+  );
+}
+
+function AuctionRow({
+  row: r,
+  showZero,
+}: {
+  row: {
+    item_id: string;
+    title: string;
+    photo_signed_url: string;
+    bid_count: number;
+    winning_amount: number | null;
+    winner_name: string | null;
+    winner_phone: string | null;
+  };
+  showZero: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const listBids = useServerFn(listItemBids);
+  const hasBids = r.winning_amount !== null;
+  const { data: bids, isLoading } = useQuery({
+    queryKey: ["item-bids", r.item_id],
+    queryFn: () => listBids({ data: { item_id: r.item_id } }),
+    enabled: open && hasBids,
+    staleTime: 15_000,
+  });
+
+  return (
+    <div className="p-4">
+      <div className="flex items-center gap-4">
+        <img
+          src={r.photo_signed_url}
+          alt={r.title}
+          className="h-16 w-16 flex-shrink-0 rounded-2xl object-cover"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-medium text-foreground">{r.title}</div>
+          {hasBids ? (
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              {r.winner_name}
+              {r.winner_phone && (
+                <a
+                  href={`tel:${r.winner_phone}`}
+                  className="ml-2 inline-flex items-center gap-1 text-foreground/70 hover:text-foreground"
+                >
+                  <Phone className="h-3 w-3" />
+                  {formatPhoneDisplay(r.winner_phone)}
+                </a>
+              )}
+            </div>
+          ) : (
+            showZero && (
+              <div className="mt-0.5 text-xs italic text-muted-foreground">No bids yet</div>
+            )
+          )}
+          {hasBids ? (
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              className="mt-1 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+            >
+              {r.bid_count} {r.bid_count === 1 ? "bid" : "bids"}
+              {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </button>
+          ) : (
+            <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+              {r.bid_count} {r.bid_count === 1 ? "bid" : "bids"}
+            </div>
+          )}
+        </div>
+        <div className="flex-shrink-0 text-right">
+          {hasBids ? (
+            <div className="font-display text-2xl italic text-foreground">
+              ¥{r.winning_amount}
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground">—</div>
+          )}
+        </div>
+      </div>
+      {open && hasBids && (
+        <div className="mt-3 rounded-2xl bg-muted/40 p-3">
+          {isLoading ? (
+            <div className="flex justify-center py-2">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          ) : bids && bids.length > 0 ? (
+            <ul className="divide-y divide-border/60">
+              {bids.map((b, i) => (
+                <li key={b.id} className="flex items-center justify-between gap-3 py-2 text-xs">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium text-foreground">
+                      {i === 0 && <span className="mr-1">👑</span>}
+                      {b.name}
+                    </div>
+                    {b.phone && (
+                      <a
+                        href={`tel:${b.phone}`}
+                        className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
+                      >
+                        <Phone className="h-3 w-3" />
+                        {formatPhoneDisplay(b.phone)}
+                      </a>
+                    )}
                   </div>
-                )
-              )}
-              <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                {r.bid_count} {r.bid_count === 1 ? "bid" : "bids"}
-              </div>
-            </div>
-            <div className="flex-shrink-0 text-right">
-              {hasBids ? (
-                <div className="font-display text-2xl italic text-foreground">
-                  ¥{r.winning_amount}
-                </div>
-              ) : (
-                <div className="text-xs text-muted-foreground">—</div>
-              )}
-            </div>
-          </div>
-        );
-      })}
+                  <div className="font-display text-base italic text-foreground">¥{b.amount}</div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-center text-xs text-muted-foreground">No bids.</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
