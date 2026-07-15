@@ -287,7 +287,7 @@ function AuctionRow({
                       </a>
                     )}
                   </div>
-                  <div className="font-display text-base italic text-foreground">¥{b.amount}</div>
+                  <div className="font-display text-base italic text-foreground">{hidePrices ? "¥•••" : `¥${b.amount}`}</div>
                 </li>
               ))}
             </ul>
