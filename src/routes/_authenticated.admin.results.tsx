@@ -255,7 +255,7 @@ function AuctionRow({
         <div className="flex-shrink-0 text-right">
           {hasBids ? (
             <div className="font-display text-2xl italic text-foreground">
-              ¥{r.winning_amount}
+              {hidePrices ? "¥•••" : `¥${r.winning_amount}`}
             </div>
           ) : (
             <div className="text-xs text-muted-foreground">—</div>
