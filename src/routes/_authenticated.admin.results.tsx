@@ -126,14 +126,14 @@ function ResultsPage() {
             (saleClosed ? (
               <EmptyState text="The sale has ended — check the Closed auctions tab." />
             ) : (
-              <AuctionList rows={auctions} showZero />
+              <AuctionList rows={auctions} showZero hidePrices={hidePrices} />
             ))}
 
           {activeTab === "closed" &&
             (!saleClosed ? (
               <EmptyState text="Results appear here when the countdown ends." />
             ) : (
-              <AuctionList rows={auctions} showZero />
+              <AuctionList rows={auctions} showZero hidePrices={hidePrices} />
             ))}
 
           {activeTab === "free" &&
