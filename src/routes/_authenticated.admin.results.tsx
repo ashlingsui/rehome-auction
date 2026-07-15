@@ -31,6 +31,7 @@ function ResultsPage() {
   const { data: adminCheck, isLoading: adminLoading } = useQuery(adminQuery);
   const { data, isLoading } = useQuery(resultsQuery);
   const [tab, setTab] = useState<Tab | null>(null);
+  const [hidePrices, setHidePrices] = useState(false);
 
   const saleClosed = data?.sale_closed ?? false;
   const activeTab: Tab = tab ?? (saleClosed ? "closed" : "active");
