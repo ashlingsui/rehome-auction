@@ -159,6 +159,7 @@ function EmptyState({ text }: { text: string }) {
 function AuctionList({
   rows,
   showZero,
+  hidePrices,
 }: {
   rows: {
     item_id: string;
@@ -170,11 +171,12 @@ function AuctionList({
     winner_phone: string | null;
   }[];
   showZero: boolean;
+  hidePrices: boolean;
 }) {
   return (
     <div className="divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card">
       {rows.map((r) => (
-        <AuctionRow key={r.item_id} row={r} showZero={showZero} />
+        <AuctionRow key={r.item_id} row={r} showZero={showZero} hidePrices={hidePrices} />
       ))}
     </div>
   );
@@ -183,6 +185,7 @@ function AuctionList({
 function AuctionRow({
   row: r,
   showZero,
+  hidePrices,
 }: {
   row: {
     item_id: string;
@@ -194,6 +197,7 @@ function AuctionRow({
     winner_phone: string | null;
   };
   showZero: boolean;
+  hidePrices: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const listBids = useServerFn(listItemBids);
