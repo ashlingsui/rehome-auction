@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/admin/results")({
   component: ResultsPage,
 });
 
-type Tab = "active" | "closed" | "free";
+type Tab = "active" | "closed" | "free" | "stats";
 
 function ResultsPage() {
   const { data: adminCheck, isLoading: adminLoading } = useQuery(adminQuery);
