@@ -433,3 +433,41 @@ function FreeRow({
   );
 }
 
+
+function TopWinners({
+  rows,
+}: {
+  rows: { name: string; phone: string; auctions: number; freebies: number; total: number }[];
+}) {
+  const medals = ["🥇", "🥈", "🥉"];
+  return (
+    <div className="divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card">
+      {rows.map((r, i) => (
+        <div key={`${r.name}-${r.phone}-${i}`} className="flex items-center gap-4 p-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-muted text-2xl">
+            {medals[i] ?? "🎖️"}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium text-foreground">{r.name}</div>
+            {r.phone && (
+              <a
+                href={`tel:${r.phone}`}
+                className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <Phone className="h-3 w-3" />
+                {formatPhoneDisplay(r.phone)}
+              </a>
+            )}
+            <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+              {r.auctions} won · {r.freebies} claimed
+            </div>
+          </div>
+          <div className="flex-shrink-0 text-right">
+            <div className="font-display text-3xl italic text-foreground">{r.total}</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">items</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
