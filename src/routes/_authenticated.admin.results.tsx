@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/admin/results")({
   component: ResultsPage,
 });
 
-type Tab = "active" | "closed" | "free";
+type Tab = "active" | "closed" | "free" | "stats";
 
 function ResultsPage() {
   const { data: adminCheck, isLoading: adminLoading } = useQuery(adminQuery);
@@ -63,10 +63,47 @@ function ResultsPage() {
   const withBids = auctions.filter((a) => a.winning_amount !== null);
   const freeClaims = data?.free_claims ?? [];
 
+  // Aggregate top winners: an item counts once per person (auction winner or free claimer)
+  const tally = new Map<
+    string,
+    { name: string; phone: string; auctions: number; freebies: number; total: number }
+  >();
+  for (const a of withBids) {
+    if (!a.winner_name) continue;
+    const key = a.winner_phone || a.winner_name;
+    const cur = tally.get(key) ?? {
+      name: a.winner_name,
+      phone: a.winner_phone ?? "",
+      auctions: 0,
+      freebies: 0,
+      total: 0,
+    };
+    cur.auctions += 1;
+    cur.total += 1;
+    tally.set(key, cur);
+  }
+  for (const f of freeClaims) {
+    const key = f.claimer_phone || f.claimer_name;
+    const cur = tally.get(key) ?? {
+      name: f.claimer_name,
+      phone: f.claimer_phone,
+      auctions: 0,
+      freebies: 0,
+      total: 0,
+    };
+    cur.freebies += 1;
+    cur.total += 1;
+    tally.set(key, cur);
+  }
+  const topWinners = Array.from(tally.values())
+    .sort((a, b) => b.total - a.total || b.auctions - a.auctions)
+    .slice(0, 3);
+
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: "active", label: "Active auctions", count: withBids.length },
     { id: "closed", label: "Closed auctions", count: withBids.length },
     { id: "free", label: "Claimed free", count: freeClaims.length },
+    { id: "stats", label: "Top winners", count: topWinners.length },
   ];
 
   return (
@@ -141,6 +178,13 @@ function ResultsPage() {
               <EmptyState text="Nothing's been claimed yet." />
             ) : (
               <FreeList rows={freeClaims} />
+            ))}
+
+          {activeTab === "stats" &&
+            (topWinners.length === 0 ? (
+              <EmptyState text="No winners yet — bids and claims will show up here." />
+            ) : (
+              <TopWinners rows={topWinners} />
             ))}
         </div>
       </div>
@@ -389,3 +433,41 @@ function FreeRow({
   );
 }
 
+
+function TopWinners({
+  rows,
+}: {
+  rows: { name: string; phone: string; auctions: number; freebies: number; total: number }[];
+}) {
+  const medals = ["🥇", "🥈", "🥉"];
+  return (
+    <div className="divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card">
+      {rows.map((r, i) => (
+        <div key={`${r.name}-${r.phone}-${i}`} className="flex items-center gap-4 p-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-muted text-2xl">
+            {medals[i] ?? "🎖️"}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium text-foreground">{r.name}</div>
+            {r.phone && (
+              <a
+                href={`tel:${r.phone}`}
+                className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <Phone className="h-3 w-3" />
+                {formatPhoneDisplay(r.phone)}
+              </a>
+            )}
+            <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+              {r.auctions} won · {r.freebies} claimed
+            </div>
+          </div>
+          <div className="flex-shrink-0 text-right">
+            <div className="font-display text-3xl italic text-foreground">{r.total}</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">items</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
