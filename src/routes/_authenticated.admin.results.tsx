@@ -179,6 +179,13 @@ function ResultsPage() {
             ) : (
               <FreeList rows={freeClaims} />
             ))}
+
+          {activeTab === "stats" &&
+            (topWinners.length === 0 ? (
+              <EmptyState text="No winners yet — bids and claims will show up here." />
+            ) : (
+              <TopWinners rows={topWinners} />
+            ))}
         </div>
       </div>
     </div>
