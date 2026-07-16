@@ -63,10 +63,47 @@ function ResultsPage() {
   const withBids = auctions.filter((a) => a.winning_amount !== null);
   const freeClaims = data?.free_claims ?? [];
 
+  // Aggregate top winners: an item counts once per person (auction winner or free claimer)
+  const tally = new Map<
+    string,
+    { name: string; phone: string; auctions: number; freebies: number; total: number }
+  >();
+  for (const a of withBids) {
+    if (!a.winner_name) continue;
+    const key = a.winner_phone || a.winner_name;
+    const cur = tally.get(key) ?? {
+      name: a.winner_name,
+      phone: a.winner_phone ?? "",
+      auctions: 0,
+      freebies: 0,
+      total: 0,
+    };
+    cur.auctions += 1;
+    cur.total += 1;
+    tally.set(key, cur);
+  }
+  for (const f of freeClaims) {
+    const key = f.claimer_phone || f.claimer_name;
+    const cur = tally.get(key) ?? {
+      name: f.claimer_name,
+      phone: f.claimer_phone,
+      auctions: 0,
+      freebies: 0,
+      total: 0,
+    };
+    cur.freebies += 1;
+    cur.total += 1;
+    tally.set(key, cur);
+  }
+  const topWinners = Array.from(tally.values())
+    .sort((a, b) => b.total - a.total || b.auctions - a.auctions)
+    .slice(0, 3);
+
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: "active", label: "Active auctions", count: withBids.length },
     { id: "closed", label: "Closed auctions", count: withBids.length },
     { id: "free", label: "Claimed free", count: freeClaims.length },
+    { id: "stats", label: "Top winners", count: topWinners.length },
   ];
 
   return (
